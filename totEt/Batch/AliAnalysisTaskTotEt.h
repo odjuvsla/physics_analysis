@@ -4,7 +4,6 @@
 class TH1F;
 class AliESDEvent;
 
-//#include "/home/odjuvsla/Workspace/alice/aliroot/ANALYSIS/AliAnalysisTask.h"
 #include "AliAnalysisTask.h"
 
 class AliAnalysisTaskTotEt : public AliAnalysisTask {
@@ -20,8 +19,7 @@ class AliAnalysisTaskTotEt : public AliAnalysisTask {
  private:
   AliESDEvent *fESD;    //ESD object
   TH1F        *fHistEt; //Et spectru
-  TH1F        *fHistEtCells; //Et spectrum of cells
-   
+  TH1F        *fHistTotEtCells; //Total Et spectrum of cells
   AliAnalysisTaskTotEt(const AliAnalysisTaskTotEt&); // not implemented
   AliAnalysisTaskTotEt& operator=(const AliAnalysisTaskTotEt&); // not implemented
   

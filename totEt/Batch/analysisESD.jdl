@@ -1,6 +1,6 @@
 # this is the startup process for root
 Executable="root.sh";
-Jobtag={"comment:AliEn tutorial batch example - ESD"};
+Jobtag={"comment:Testing tot Et - ESD"};
 
 # we split per storage element
 Split="se";
@@ -12,42 +12,42 @@ SplitMaxInputFileNumber="5";
 Requirements=( member(other.GridPartitions,"Analysis") );
 
 # validation command
-Validationcommand ="/alice/cern.ch/user/p/pchrist/Tutorial/BATCH/validation.sh";
+Validationcommand ="/alice/cern.ch/user/o/odjuvsla/analysis/totEt/Batch/validation.sh";
 
 # we need ROOT and the API service configuration package
-Packages={"APISCONFIG::V2.4","VO_ALICE@ROOT::v5-16-00"};
+Packages={"APISCONFIG::V2.4","VO_ALICE@ROOT::v5-21-05"};
 
 # Time to live
-TTL = "30000";
+TTL = "3000";
 
 # Automatic merging
-Merge={"Pt.ESD.root:/alice/jdl/mergerootfile.jdl:Pt.ESD.Merged.root"};
+Merge={"Et.ESD.root:/alice/jdl/mergerootfile.jdl:Et.ESD.Merged.root"};
 
 # Output dir of the automatic merging
-MergeOutputDir="/alice/cern.ch/user/p/pchrist/Tutorial/BATCH/output/";
+MergeOutputDir="/alice/cern.ch/user/o/odjuvsla/analysis/totEt/Batch/output/";
 
 #ROOT will read this collection file to know, which files to analyze
-InputDataList="wn.xml";
+InputDataList="tag.xml";
 
 #ROOT requires the collection file in the xml-single format
-InputDataListFormat="merge:/alice/cern.ch/user/p/pchrist/Tutorial/BATCH/global.xml";
+InputDataListFormat="merge:/alice/cern.ch/user/o/odjuvsla/analysis/totEt/Batch/tag.xml";
 
 # this is our collection file containing the files to be analyzed
-InputDataCollection="LF:/alice/cern.ch/user/p/pchrist/Tutorial/BATCH/global.xml,nodownload";
+InputDataCollection="LF:/alice/cern.ch/user/o/odjuvsla/analysis/totEt/Batch/tag.xml,nodownload";
 
-InputFile= {"LF:/alice/cern.ch/user/p/pchrist/Tutorial/BATCH/runBatch.C",
-            "LF:/alice/cern.ch/user/p/pchrist/Tutorial/BATCH/STEERBase.par",
-            "LF:/alice/cern.ch/user/p/pchrist/Tutorial/BATCH/ESD.par",
-            "LF:/alice/cern.ch/user/p/pchrist/Tutorial/BATCH/AOD.par",
-            "LF:/alice/cern.ch/user/p/pchrist/Tutorial/BATCH/ANALYSIS.par",
-            "LF:/alice/cern.ch/user/p/pchrist/Tutorial/BATCH/AliAnalysisTaskPt.h",
-            "LF:/alice/cern.ch/user/p/pchrist/Tutorial/BATCH/AliAnalysisTaskPt.cxx"};
+InputFile= {"LF:/alice/cern.ch/user/o/odjuvsla/analysis/totEt/Batch/runBatch.C",
+            "LF:/alice/cern.ch/user/o/odjuvsla/analysis/totEt/Batch/STEERBase.par",
+            "LF:/alice/cern.ch/user/o/odjuvsla/analysis/totEt/Batch/ESD.par",
+            "LF:/alice/cern.ch/user/o/odjuvsla/analysis/totEt/Batch/AOD.par",
+            "LF:/alice/cern.ch/user/o/odjuvsla/analysis/totEt/Batch/ANALYSIS.par",
+            "LF:/alice/cern.ch/user/o/odjuvsla/analysis/totEt/Batch/AliAnalysisTaskTotEt.h",
+            "LF:/alice/cern.ch/user/o/odjuvsla/analysis/totEt/Batch/AliAnalysisTaskTotEt.cxx"};
 
 # Output archive	    
 OutputArchive={"log_archive:stdout,stderr,*.log@Alice::CERN::se","root_archive.zip:*.root@Alice::CERN::se"};
 
 # Output directory
-OutputDir="/alice/cern.ch/user/p/pchrist/Tutorial/BATCH/output/#alien_counter#";
+OutputDir="/alice/cern.ch/user/o/odjuvsla/analysis/totEt/Batch/output/#alien_counter#";
 
 # email
-Email="Panos.Christakoglou@cern.ch";
+Email="odjuvsla@cern.ch";

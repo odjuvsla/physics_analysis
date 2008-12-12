@@ -3,14 +3,7 @@
 #include "TH1F.h"
 #include "TCanvas.h"
 #include "TMath.h"
-
-// #include "/home/odjuvsla/Workspace/alice/aliroot/ANALYSIS/AliAnalysisTask.h"
-// #include "/home/odjuvsla/Workspace/alice/aliroot/ANALYSIS/AliAnalysisManager.h"
-
-// #include "/home/odjuvsla/Workspace/alice/aliroot/STEER/AliESDEvent.h"
-// #include "/home/odjuvsla/Workspace/alice/aliroot/STEER/AliESDCaloCluster.h"
-// #include "/home/odjuvsla/Workspace/alice/aliroot/STEER/AliESDCaloCells.h"
-// #include "/home/odjuvsla/Workspace/alice/aliroot/STEER/AliESDInputHandler.h"
+#include "TObjArray.h"
 
 #include "AliAnalysisTask.h"
 #include "AliAnalysisManager.h"
@@ -22,6 +15,10 @@
 
 #include "AliAnalysisTaskTotEt.h"
 
+#include <iostream>
+
+using namespace std;
+
 ClassImp(AliAnalysisTaskTotEt)
 
 //________________________________________________________________________
@@ -29,7 +26,8 @@ AliAnalysisTaskTotEt::AliAnalysisTaskTotEt(const char *name) :
 AliAnalysisTask(name, ""), 
   fESD(0), 
   fHistEt(0), 
-  fHistEtCells(0)
+  fHistTotEtCells(0)
+
 {
   // Constructor
 
@@ -79,18 +77,17 @@ void AliAnalysisTaskTotEt::CreateOutputObjects()
   // Create histograms
   // Called once
 
-  fHistEt = new TH1F("fHistEt", "E_{T} distribution", 200, 0, 40);
-  fHistEt->GetXaxis()->SetTitle("E_{T} (GeV/c^2)");
-  fHistEt->GetYaxis()->SetTitle("dN/dE_{T} (c^2/GeV)");
+  fHistEt = new TH1F("fHistEt", "Total E_{T} distribution", 100, 0, 20);
+  fHistEt->GetXaxis()->SetTitle("E_{T} (GeV/c^{2})");
+  fHistEt->GetYaxis()->SetTitle("dN/dE_{T} (c^{2}/GeV)");
   fHistEt->SetMarkerStyle(kFullCircle);
   fHistEt->SetMarkerColor(kMagenta);
 
-  fHistEtCells = new TH1F("fHistEtCells", "E_{T} distribution (sum of cells)", 15, 0.1, 3.1);
-  fHistEtCells->GetXaxis()->SetTitle("E_{T} (GeV/c^2)");
-  fHistEtCells->GetYaxis()->SetTitle("dN/dE_{T} (c^2/GeV)");
-  fHistEtCells->SetMarkerStyle(kFullCircle);
-  fHistEtCells->SetMarkerColor(kBlue);
-  
+  fHistTotEtCells = new TH1F("fHistTotEtCells", "Total E_{T} distribution (sum of cells)", 200, 150, 249);
+  fHistTotEtCells->GetXaxis()->SetTitle("E_{T} (GeV/c^{2})");
+  fHistTotEtCells->GetYaxis()->SetTitle("dN/dE_{T} (c^{2}/GeV)");
+  fHistTotEtCells->SetMarkerStyle(kFullCircle);
+  fHistTotEtCells->SetMarkerColor(kBlue);
 }
 
 //________________________________________________________________________
@@ -125,29 +122,36 @@ void AliAnalysisTaskTotEt::Exec(Option_t *)
 	  totEt += cluster->E(); //* TMath::Sin(TMath::ATan((cluster->fGlobalPos)[2]/460.0));
 	}
     }
-//   AliESDCaloCells* cells = fESD->GetPHOSCells();
+  AliESDCaloCells* cells = fESD->GetPHOSCells();
   
-//   Short_t cellNumber = 0;
-//   Double_t cellAmplitude = 0;
-//   Double_t cellTime = 0;
-  
-//   for(Short_t iCell = 0; iCell < cells->GetNumberOfCells(); iCell++)
-//     {
-//       if(!cells->GetCell(iCell, cellNumber, cellAmplitude, cellTime))
-// 	{
-// 	  Printf("ERROR: Could not receive cell %d", iCell);
-// 	  continue;
-// 	}
-   
-//       totEtCells += cellAmplitude;
-//     }
-
+  if(cells) 
+    {
+      Short_t cellNumber = 0;
+      Double_t cellAmplitude = 0;
+      Double_t cellTime = 0;
+      
+      for(Short_t iCell = 0; iCell < cells->GetNumberOfCells(); iCell++)
+	{
+	  if(!cells->GetCell(iCell, cellNumber, cellAmplitude, cellTime))
+	    {
+	      Printf("ERROR: Could not receive cell %d", iCell);
+	      continue;
+	    }
+	  if(cellAmplitude && fESD->GetNumberOfCaloClusters() >0)
+	    {
+	      //      cout << "Cell amplitude: " << cellAmplitude << endl;
+	      totEtCells += cellAmplitude;
+	    }
+	}
+    }
+  if(fESD->GetNumberOfCaloClusters() == 0)
+  //    cout << "Total cell amplitude: " << totEtCells << endl;
   fHistEt->Fill(totEt);
-  //  fHistEtCells->Fill(totEtCells);
+  fHistTotEtCells->Fill(totEtCells);//- 6167.59004237288173);
 
    // Post output data.
   PostData(0, fHistEt);
-  PostData(1, fHistEtCells);
+  PostData(1, fHistTotEtCells);
 }      
 
 //________________________________________________________________________
@@ -157,21 +161,31 @@ void AliAnalysisTaskTotEt::Terminate(Option_t *)
   // Called once at the end of the query
 
   fHistEt = dynamic_cast<TH1F*> (GetOutputData(0)); 
-  fHistEtCells = dynamic_cast<TH1F*> (GetOutputData(1)); 
-  if (!fHistEt) {
-    Printf("ERROR: fHistEt not available");
-    return;
-  }
-  if (!fHistEtCells) {
-    Printf("ERROR: fHistEtCells not available");
-    return;
-  }
+  fHistTotEtCells = dynamic_cast<TH1F*> (GetOutputData(1)); 
   
-  TCanvas *c1 = new TCanvas("AliAnalysisTaskTotEt","Et",10,10,510,510);
-  c1->cd(1)->SetLogy();
-  fHistEt->DrawCopy("E");
+//   cout << fCount << endl;
+//   if (!fHistEt) {
+//     Printf("ERROR: fHistEt not available");
+//     return;
+//   }
+//   if (!fHistTotEtCells) {
+//     Printf("ERROR: fHistTotEtCells not available");
+//     return;
+//   }
+//   if (!fHistEtCells) {
+//     Printf("ERROR: fHistEtCells not available");
+//     return;
+//   }
+  
+//   TCanvas *c1 = new TCanvas("AliAnalysisTaskTotEt","Et",10,10,510,510);
+//   c1->cd(1)->SetLogy();
+//   fHistEt->Draw("E");
 
-  TCanvas *c2 = new TCanvas("AliAnalysisTaskTotEt","EtCells",10,10,510,510);
-  c2->cd(1)->SetLogy();
-  fHistEtCells->DrawCopy("same");
+//   //  TCanvas *c2 = new TCanvas("AliAnalysisTaskTotEt","EtTotCells",10,10,510,510);
+//   //  c2->cd(1)->SetLogy();
+//   fHistTotEtCells->Draw("same");
+  
+//   // TCanvas *c3 = new TCanvas("AliAnalysisTaskTotEt","EtCells",10,10,510,510);
+//   //  c2->cd(1)->SetLogy();
+//   fHistEtCells->Draw("same");
 }

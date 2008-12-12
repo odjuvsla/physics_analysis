@@ -30,19 +30,20 @@ void runBatch() {
   //_____________________________________________________________//
   setupPar("ANALYSIS");
   gSystem->Load("libANALYSIS.so");
+  gSystem->Load("libANALYSISalice.so");
 
   //CreateXML();
   
   //ANALYSIS PART
-  gROOT->LoadMacro("AliAnalysisTaskPt.cxx+");
-  const char *collectionfile = "wn.xml";
+  gROOT->LoadMacro("AliAnalysisTaskTotEt.cxx+");
+  const char *collectionfile = "tag.xml";
 
   //____________________________________________//
   //Usage of event tags
   AliTagAnalysis *analysis = new AliTagAnalysis();
   TChain *chain = 0x0;
   chain = analysis->GetChainFromCollection(collectionfile,"esdTree");
-  chain->SetBranchStatus("*Calo*",0);
+  //chain->SetBranchStatus("*Calo*",0);
    
   //____________________________________________//
   // Make the analysis manager
@@ -51,15 +52,18 @@ void runBatch() {
   mgr->SetInputEventHandler(esdH);  
   //____________________________________________//
   // 1st Pt task
-  AliAnalysisTaskPt *task1 = new AliAnalysisTaskPt("TaskPt");
+  AliAnalysisTaskTotEt *task1 = new AliAnalysisTaskTotEt("TaskTotEt");
   mgr->AddTask(task1);
   // Create containers for input/output
   AliAnalysisDataContainer *cinput1 = mgr->CreateContainer("cchain1",TChain::Class(),AliAnalysisManager::kInputContainer);
-  AliAnalysisDataContainer *coutput1 = mgr->CreateContainer("chist1", TH1::Class(),AliAnalysisManager::kOutputContainer,"Pt.ESD.root");
-  
+  AliAnalysisDataContainer *coutput1 = mgr->CreateContainer("chist1", TH1::Class(),AliAnalysisManager::kOutputContainer,"Et.ESD.root");
+  AliAnalysisDataContainer *coutput2 = mgr->CreateContainer("chist2", TH1::Class(), AliAnalysisManager::kOutputContainer,"Et.ESD.root");
+
   //____________________________________________//
   mgr->ConnectInput(task1,0,cinput1);
   mgr->ConnectOutput(task1,0,coutput1);
+  mgr->ConnectOutput(task1,1,coutput2);
+
   if (!mgr->InitAnalysis()) return;
   mgr->PrintStatus();
   mgr->StartAnalysis("local",chain);
@@ -101,7 +105,7 @@ tTag.fNumberOfTracks <= 12)";
   AliDetectorTagCuts *detCuts = new AliDetectorTagCuts();
   // create an EventTagCut object
   AliEventTagCuts *evCuts = new AliEventTagCuts();
-  evCuts->SetMultiplicityRange(11,12);
+  // evCuts->SetMultiplicityRange(11,12);
   tagAna->CreateXMLCollection("global",runCuts,lhcCuts,detCuts,evCuts);
 }  
 
