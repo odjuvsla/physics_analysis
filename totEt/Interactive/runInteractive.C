@@ -5,7 +5,8 @@ void runInteractive() {
 
   printf("*** Connect to AliEn ***\n");
   TGrid::Connect("alien://", "odjuvsla");
- 
+  //  TGrid::Connect("alien://");
+  
   //____________________________________________________//
   //_____________Setting up STEERBase.par_______________//
   //____________________________________________________//
@@ -63,10 +64,12 @@ void runInteractive() {
   // Create containers for input/output
   AliAnalysisDataContainer *cinput1 = mgr->CreateContainer("cchain1",TChain::Class(),AliAnalysisManager::kInputContainer);
   AliAnalysisDataContainer *coutput1 = mgr->CreateContainer("chist1", TH1::Class(),AliAnalysisManager::kOutputContainer,"Et.ESD.root");
+  AliAnalysisDataContainer *coutput2 = mgr->CreateContainer("chist2", TH1::Class(),AliAnalysisManager::kOutputContainer,"Et.ESD.root");
   
   //____________________________________________//
   mgr->ConnectInput(task1,0,cinput1);
   mgr->ConnectOutput(task1,0,coutput1);
+  mgr->ConnectOutput(task1,1,coutput2);
   if (!mgr->InitAnalysis()) return;
   mgr->PrintStatus();
   mgr->StartAnalysis("local",chain);

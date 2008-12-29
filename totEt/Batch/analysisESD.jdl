@@ -15,7 +15,7 @@ Requirements=( member(other.GridPartitions,"Analysis") );
 Validationcommand ="/alice/cern.ch/user/o/odjuvsla/analysis/totEt/Batch/validation.sh";
 
 # we need ROOT and the API service configuration package
-Packages={"APISCONFIG::V2.4","VO_ALICE@ROOT::v5-21-05"};
+Packages={"APISCONFIG::V2.4","VO_ALICE@ROOT::v5-21-05-alice"};
 
 # Time to live
 TTL = "3000";
