@@ -43,9 +43,9 @@ void runInteractive() {
   AliDetectorTagCuts *detCuts = new AliDetectorTagCuts();
   AliEventTagCuts *evCuts = new AliEventTagCuts();
   //  evCuts->SetMultiplicityRange(11,12);
-
+  evCuts->SetNPHOSClustersRange(1,100);  
   //grid tags
-  TAlienCollection* coll = TAlienCollection::Open("tag.xml");
+  TAlienCollection* coll = TAlienCollection::Open("pp.xml");
   TGridResult* TagResult = coll->GetGridResult("",0,0);
   TagAna->ChainGridTags(TagResult);
   TChain* chain = 0x0;
@@ -65,11 +65,13 @@ void runInteractive() {
   AliAnalysisDataContainer *cinput1 = mgr->CreateContainer("cchain1",TChain::Class(),AliAnalysisManager::kInputContainer);
   AliAnalysisDataContainer *coutput1 = mgr->CreateContainer("chist1", TH1::Class(),AliAnalysisManager::kOutputContainer,"Et.ESD.root");
   AliAnalysisDataContainer *coutput2 = mgr->CreateContainer("chist2", TH1::Class(),AliAnalysisManager::kOutputContainer,"Et.ESD.root");
-  
+    AliAnalysisDataContainer *coutput3 = mgr->CreateContainer("chist3", TH1::Class(), AliAnalysisManager::kOutputContainer,"Et.ESD.root");
   //____________________________________________//
   mgr->ConnectInput(task1,0,cinput1);
   mgr->ConnectOutput(task1,0,coutput1);
   mgr->ConnectOutput(task1,1,coutput2);
+  mgr->ConnectOutput(task1,2,coutput3);
+
   if (!mgr->InitAnalysis()) return;
   mgr->PrintStatus();
   mgr->StartAnalysis("local",chain);

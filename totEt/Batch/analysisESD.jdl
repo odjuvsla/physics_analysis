@@ -1,12 +1,12 @@
 # this is the startup process for root
-Executable="root.sh";
+Executable="root2.sh";
 Jobtag={"comment:Testing tot Et - ESD"};
 
 # we split per storage element
 Split="se";
 
 # we want each job to read 100 input files
-SplitMaxInputFileNumber="5";
+SplitMaxInputFileNumber="100";
 
 # this job has to run in the ANALYSIS partition
 Requirements=( member(other.GridPartitions,"Analysis") );
@@ -18,7 +18,7 @@ Validationcommand ="/alice/cern.ch/user/o/odjuvsla/analysis/totEt/Batch/validati
 Packages={"APISCONFIG::V2.4","VO_ALICE@ROOT::v5-21-05-alice"};
 
 # Time to live
-TTL = "3000";
+TTL = "72000";
 
 # Automatic merging
 Merge={"Et.ESD.root:/alice/jdl/mergerootfile.jdl:Et.ESD.Merged.root"};

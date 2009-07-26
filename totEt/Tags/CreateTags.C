@@ -30,7 +30,7 @@ void CreateTags() {
   //________Locally stored ESDs________//
   //___________________________________//
   //create the tag files for the locally stored ESDs
-  t->ReadLocalCollection("../ESDs/");
+  t->ReadLocalCollection("../ESDs/81656/");
   //  t->ReadLocalCollection("../ESDs/960/");
 //   t->ReadLocalCollection("../ESDs/961/");
 //   t->ReadLocalCollection("../ESDs/962/");
