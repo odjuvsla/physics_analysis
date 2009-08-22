@@ -29,7 +29,10 @@ void runLocal() {
   gSystem->Load("libANALYSISalice.so");
   
   //  gROOT->LoadMacro("../tasks/AliAnalysisTaskTotEt.cxx+");
-  gROOT->LoadMacro("AliAnalysisTaskTotEt.cxx++");
+
+  gSystem->AddIncludePath("-I$ALICE_ROOT/include");
+
+  gROOT->LoadMacro("AliAnalysisTaskTotEt.cxx+g");
 
   //____________________________________________//
   AliTagAnalysis *TagAna = new AliTagAnalysis("ESD"); 
@@ -39,7 +42,7 @@ void runLocal() {
   AliLHCTagCuts *lhcCuts = new AliLHCTagCuts();
   AliDetectorTagCuts *detCuts = new AliDetectorTagCuts();
   AliEventTagCuts *evCuts = new AliEventTagCuts();
-  //  evCuts->SetMultiplicityRange(11,12);  
+  //   evCuts->SetMultiplicityRange(11,12);  
   evCuts->SetNPHOSClustersRange(1,100);  
   
   TChain* chain = 0x0;
@@ -47,7 +50,7 @@ void runLocal() {
   //  chain->SetBranchStatus("*Calo*",0);
   
   // Make the analysis manager
-  AliAnalysisManager *mgr = new AliAnalysisManager("TestManager");
+  AliAnalysisManager *mgr = new AliAnalysisManager("TotEtManager");
   AliVEventHandler* esdH = new AliESDInputHandler;
   mgr->SetInputEventHandler(esdH);  
   
@@ -69,6 +72,8 @@ void runLocal() {
   mgr->ConnectOutput(task1,3,coutput4);
   mgr->ConnectOutput(task1,4,coutput5);
   //  mgr->ConnectOutput(task1,3,coutput4);
+
+  //  mgr->SetDebugLevel(2);
 
   if (!mgr->InitAnalysis()) return;
   mgr->PrintStatus();
