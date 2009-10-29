@@ -25,8 +25,8 @@ void runLocal() {
   //_____________Setting up ANALYSIS_NEW.par_____________________//
   //_____________________________________________________________//
   setupPar("ANALYSIS");
-  gSystem->Load("libANALYSIS.so");
-  gSystem->Load("libANALYSISalice.so");
+  gSystem->Load("libANALYSIS");
+  gSystem->Load("libANALYSISalice");
   
   //  gROOT->LoadMacro("../tasks/AliAnalysisTaskTotEt.cxx+");
 
@@ -43,7 +43,7 @@ void runLocal() {
   AliDetectorTagCuts *detCuts = new AliDetectorTagCuts();
   AliEventTagCuts *evCuts = new AliEventTagCuts();
   //   evCuts->SetMultiplicityRange(11,12);  
-  evCuts->SetNPHOSClustersRange(1,100);  
+  evCuts->SetNPHOSClustersRange(0,100);  
   
   TChain* chain = 0x0;
   chain = TagAna->QueryTags(runCuts,lhcCuts,detCuts,evCuts);
@@ -66,14 +66,14 @@ void runLocal() {
   //  AliAnalysisDataContainer *coutput4 = mgr->CreateContainer("carray1", TClonesArray::Class(), AliAnalysisManager::kOutputContainer,"Pt.ESD.root");
     //____________________________________________//
   mgr->ConnectInput(task1,0,cinput1);
-  mgr->ConnectOutput(task1,0,coutput1);
-  mgr->ConnectOutput(task1,1,coutput2);
-  mgr->ConnectOutput(task1,2,coutput3);
-  mgr->ConnectOutput(task1,3,coutput4);
-  mgr->ConnectOutput(task1,4,coutput5);
+  mgr->ConnectOutput(task1,1,coutput1);
+  mgr->ConnectOutput(task1,2,coutput2);
+  mgr->ConnectOutput(task1,3,coutput3);
+  mgr->ConnectOutput(task1,4,coutput4);
+  mgr->ConnectOutput(task1,5,coutput5);
   //  mgr->ConnectOutput(task1,3,coutput4);
 
-  //  mgr->SetDebugLevel(2);
+  mgr->SetDebugLevel(2);
 
   if (!mgr->InitAnalysis()) return;
   mgr->PrintStatus();

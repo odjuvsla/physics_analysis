@@ -43,9 +43,9 @@ void runInteractive() {
   AliDetectorTagCuts *detCuts = new AliDetectorTagCuts();
   AliEventTagCuts *evCuts = new AliEventTagCuts();
   //  evCuts->SetMultiplicityRange(11,12);
-  evCuts->SetNPHOSClustersRange(1,100);  
+  //  evCuts->SetNPHOSClustersRange(1,100);  
   //grid tags
-  TAlienCollection* coll = TAlienCollection::Open("pp.xml");
+  TAlienCollection* coll = TAlienCollection::Open("pp_test.xml");
   TGridResult* TagResult = coll->GetGridResult("",0,0);
   TagAna->ChainGridTags(TagResult);
   TChain* chain = 0x0;
@@ -57,20 +57,25 @@ void runInteractive() {
   AliAnalysisManager *mgr = new AliAnalysisManager("TestManager");
   AliVEventHandler* esdH = new AliESDInputHandler;
   mgr->SetInputEventHandler(esdH);  
-  //____________________________________________//
-  // 1st Pt task
+
   AliAnalysisTaskTotEt *task1 = new AliAnalysisTaskTotEt("TaskTotEt");
   mgr->AddTask(task1);
   // Create containers for input/output
-  AliAnalysisDataContainer *cinput1 = mgr->CreateContainer("cchain1",TChain::Class(),AliAnalysisManager::kInputContainer);
-  AliAnalysisDataContainer *coutput1 = mgr->CreateContainer("chist1", TH1::Class(),AliAnalysisManager::kOutputContainer,"Et.ESD.root");
-  AliAnalysisDataContainer *coutput2 = mgr->CreateContainer("chist2", TH1::Class(),AliAnalysisManager::kOutputContainer,"Et.ESD.root");
-    AliAnalysisDataContainer *coutput3 = mgr->CreateContainer("chist3", TH1::Class(), AliAnalysisManager::kOutputContainer,"Et.ESD.root");
-  //____________________________________________//
+  AliAnalysisDataContainer *cinput1 = mgr->CreateContainer("cchain1", TChain::Class(),AliAnalysisManager::kInputContainer);
+  AliAnalysisDataContainer *coutput1 = mgr->CreateContainer("chist1", TH1::Class(), AliAnalysisManager::kOutputContainer,"Et.ESD.root");
+  AliAnalysisDataContainer *coutput2 = mgr->CreateContainer("chist2", TH1::Class(), AliAnalysisManager::kOutputContainer,"Et.ESD.root");
+  AliAnalysisDataContainer *coutput3 = mgr->CreateContainer("chist3", TH1::Class(), AliAnalysisManager::kOutputContainer,"Et.ESD.root");
+  AliAnalysisDataContainer *coutput4 = mgr->CreateContainer("chist4", TH1::Class(), AliAnalysisManager::kOutputContainer,"Et.ESD.root");
+  AliAnalysisDataContainer *coutput5 = mgr->CreateContainer("cnt", TNtuple::Class(), AliAnalysisManager::kOutputContainer,"Et.ESD.root");
+  //  AliAnalysisDataContainer *coutput4 = mgr->CreateContainer("carray1", TClonesArray::Class(), AliAnalysisManager::kOutputContainer,"Pt.ESD.root");
+    //____________________________________________//
   mgr->ConnectInput(task1,0,cinput1);
-  mgr->ConnectOutput(task1,0,coutput1);
-  mgr->ConnectOutput(task1,1,coutput2);
-  mgr->ConnectOutput(task1,2,coutput3);
+  mgr->ConnectOutput(task1,1,coutput1);
+  mgr->ConnectOutput(task1,2,coutput2);
+  mgr->ConnectOutput(task1,3,coutput3);
+  mgr->ConnectOutput(task1,4,coutput4);
+  mgr->ConnectOutput(task1,5,coutput5);
+  //  mgr->ConnectOutput(task1,3,coutput4);
 
   if (!mgr->InitAnalysis()) return;
   mgr->PrintStatus();
