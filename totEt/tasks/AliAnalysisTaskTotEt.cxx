@@ -15,6 +15,8 @@
 #include "AliESDCaloCluster.h"
 #include "AliESDCaloCells.h"
 #include "AliESDInputHandler.h"
+#include "AliMCEvent.h"
+#include "AliMCParticle.h"
 
 #include "AliAnalysisTaskTotEt.h"
 
@@ -33,7 +35,11 @@ AliAnalysisTaskSE(name),
   fHistEtCells(0),
   fHistCell(0),
   fEtNtuple(0),
-  fCount(0)
+  fEtRecMCNtuple(0),
+  fEtRecGeomNtuple(0),
+  fEtMCGeomNtuple(0),
+  fCount(0),
+  fkPhotonPdg(22)
 {
   // Constructor
 
@@ -46,6 +52,9 @@ AliAnalysisTaskSE(name),
   DefineOutput(3, TH1F::Class());
   DefineOutput(4, TH1F::Class());
   DefineOutput(5, TNtuple::Class());
+  DefineOutput(6, TNtuple::Class());
+  DefineOutput(7, TNtuple::Class());
+  DefineOutput(8, TNtuple::Class());
 }
 
 // //________________________________________________________________________
@@ -120,6 +129,9 @@ void AliAnalysisTaskTotEt::UserCreateOutputObjects()
 //     }
 
   fEtNtuple = new TNtuple("fEtNtuple", "EtNtuple", "TotE:TotEt:TotEtCells");
+  fEtRecMCNtuple = new TNtuple("fEtRecMCNtuple", "EtRecMCNtuple", "RecTotE:RecTotEt:MCTotE:MCTotEt");
+  fEtRecGeomNtuple = new TNtuple("fEtRecGeomNtuple", "EtRecGeomNtuple", "RecE:RecEt:Eta:Phi");
+  fEtMCGeomNtuple = new TNtuple("fEtMCGeomNtuple", "EtMCGeomNtuple", "MCE:MCEt:MCEta:MCPhi");
 
 }
 
@@ -134,10 +146,24 @@ void AliAnalysisTaskTotEt::UserExec(Option_t *)
   Float_t totEtCells = 0;
   Float_t position[3];
 
+  Float_t mcTotEt = 0;
+  Float_t mcTotEnergy = 0;
+  Float_t mcTotNeutralEnergy = 0;
+  Float_t mcTotNeutralEt = 0;
+  Float_t mcTotChargedEnergy = 0;
+  Float_t mcTotChargedEt = 0;
+  
+
   //AliVEvent *event = InputEvent();
   AliESDEvent *event = dynamic_cast<AliESDEvent*>(InputEvent());
   if (!event) {
      Printf("ERROR: Could not retrieve event");
+     return;
+  }
+
+  AliMCEvent* mcEvent = MCEvent();
+  if (!mcEvent) {
+     Printf("ERROR: Could not retrieve MC event");
      return;
   }
 
@@ -155,6 +181,39 @@ void AliAnalysisTaskTotEt::UserExec(Option_t *)
   //  Printf("There are %d clusters in this event", event->GetNumberOfCaloClusters());
   //Printf("There are %d tracks in this event", event->GetNumberOfTracks());
 
+  for(Int_t iPart = 0; iPart < mcEvent->GetNumberOfTracks(); iPart++) 
+    {
+      
+      AliMCParticle *part = dynamic_cast<AliMCParticle*>(mcEvent->GetTrack(iPart));
+      if (!part) 
+	{
+	  Printf("ERROR: Could not receive particle %d", iPart);
+	  continue;
+	}
+
+      mcTotEnergy += part->E();
+      mcTotEt += part->E() * part->Theta();
+      if(part->PdgCode() == fkPhotonPdg)
+	{
+	  mcTotNeutralEnergy += part->E();
+	  mcTotNeutralEt += part->E()*part->Theta();
+	}
+      else if(part->Charge() != 0)
+	{
+	  mcTotChargedEnergy += part->E();
+	  mcTotChargedEt += part->E()*part->Theta();
+	}
+      if(ParticleInPHOS(part))
+	{
+	}
+      else if(ParticleInEMCAL(part))
+	{
+	}
+      else
+	{
+	}
+    }
+
   for(Int_t iCluster = 0; iCluster < event->GetNumberOfCaloClusters(); iCluster++) 
   // for(Int_t iCluster = 0; iCluster < 2; iCluster++) 
     {
@@ -164,8 +223,8 @@ void AliAnalysisTaskTotEt::UserExec(Option_t *)
 	  Printf("ERROR: Could not get cluster %d", iCluster);
 	  continue;
 	}
-      if(cluster->IsPHOS())
-	{
+      // if(cluster->IsPHOS())
+      // 	{
 	  totEnergy += cluster->E(); 
 
 	  cluster->GetPosition(position);
@@ -175,16 +234,16 @@ void AliAnalysisTaskTotEt::UserExec(Option_t *)
 	  float eta = TMath::Log(TMath::Abs( TMath::Tan( 0.5 * (TMath::ATan(position[2]/dist) + TMath::Pi()/2) ) ) );
 	  float theta = TMath::ATan(position[2]/dist)+TMath::Pi()/2;
 	  //	  float eta = - TMath::Log(0.5*TMath::ATan(position[2]/dist));
-	  //'	  cout << eta << endl;
+	  //	  cout << eta << endl;
 	  //	  totEt += cluster->E() * (TMath::Sin(TMath::ATan(position[2]/dist)));
 	  totEt += cluster->E() * TMath::Sin(theta);
-	}
+	  //	}
     }
 
   AliESDCaloCells* cells = event->GetPHOSCells();
   
   if(cells) 
-    {
+    { 
       Short_t cellNumber = 0;
       Double_t cellAmplitude = 0;
       Double_t cellTime = 0;
@@ -214,12 +273,15 @@ void AliAnalysisTaskTotEt::UserExec(Option_t *)
   fHistTotE->Fill(totEnergy);
   fHistTotEtCells->Fill(totEtCells);//- 6167.59004237288173);
   fEtNtuple->Fill(totEnergy, totEt, totEtCells);
+
+  fEtRecMCNtuple->Fill(totEnergy, totEt, mcTotEnergy, mcTotEt);
    // Post output data.
   PostData(1, fHistEt);
   PostData(2, fHistTotEtCells);
   PostData(3, fHistEtCells);
   PostData(4, fHistTotE);
   PostData(5, fEtNtuple);
+  PostData(6, fEtRecMCNtuple);
   //PostData(3, fHistCell);
 }      
 
@@ -263,4 +325,16 @@ void AliAnalysisTaskTotEt::Terminate(Option_t *)
   // TCanvas *c3 = new TCanvas("AliAnalysisTaskTotEt","EtCells",10,10,510,510);
   //  c2->cd(1)->SetLogy();
   //fHistEtCells->Draw("same");
+}
+
+bool
+AliAnalysisTaskTotEt::ParticleInPHOS(AliMCParticle *particle)
+{
+  return false;
+}
+
+bool
+AliAnalysisTaskTotEt::ParticleInEMCAL(AliMCParticle *particle)
+{
+  return false;
 }
