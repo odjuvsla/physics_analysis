@@ -1,6 +1,7 @@
-#include "TChain.h" 
+#include "TChain.h"
 #include "TTree.h"
 #include "TH1F.h"
+#include "TH2F.h"
 #include "TNtuple.h"
 #include "TCanvas.h"
 #include "TMath.h"
@@ -12,8 +13,11 @@
 #include "AliESDEvent.h"
 #include "AliAODEvent.h"
 #include "AliVEvent.h"
+#include "AliVTrack.h"
+#include "AliVParticle.h"
 #include "AliESDCaloCluster.h"
 #include "AliESDCaloCells.h"
+#include "AliESDtrack.h"
 #include "AliESDInputHandler.h"
 #include "AliMCEvent.h"
 #include "AliMCParticle.h"
@@ -21,320 +25,575 @@
 #include "AliAnalysisTaskTotEt.h"
 
 #include <iostream>
+#include "AliStack.h"
 
 using namespace std;
 
 ClassImp(AliAnalysisTaskTotEt)
 
 //________________________________________________________________________
-AliAnalysisTaskTotEt::AliAnalysisTaskTotEt(const char *name) : 
-AliAnalysisTaskSE(name), 
-  fESD(0), 
-  fHistEt(0), 
-  fHistTotE(0),
-  fHistEtCells(0),
-  fHistCell(0),
-  fEtNtuple(0),
-  fEtRecMCNtuple(0),
-  fEtRecGeomNtuple(0),
-  fEtMCGeomNtuple(0),
-  fCount(0),
-  fkPhotonPdg(22)
-{
-  // Constructor
+AliAnalysisTaskTotEt::AliAnalysisTaskTotEt(const char *name) :
+        AliAnalysisTaskSE(name)
+        ,fESD(0)
+        ,fOutputList(0)
+        ,fHistEt(0)
+        ,fHistTotE(0)
+        ,fHistMult(0)
+        ,fHistMCEt(0)
+        ,fHistMCTotE(0)
+        ,fEtNtuple(0)
+        ,fEtRecMCNtuple(0)
+        ,fEtRecGeomNtuple(0)
+        ,fEtMCGeomNtuple(0)
+        ,fHistNeutralEt(0)
+        ,fHistNeutralTotE(0)
+        ,fHistNeutralMult(0)
+        ,fHistMCNeutralEt(0)
+        ,fHistMCNeutralTotE(0)
+        ,fNeutralEtNtuple(0)
+        ,fNeutralEtRecMCNtuple(0)
+        ,fNeutralEtRecGeomNtuple(0)
+        ,fNeutralEtMCGeomNtuple(0)
+        ,fHistChargedEt(0)
+        ,fHistChargedTotE(0)
+        ,fHistChargedMult(0)
+        ,fHistMCChargedEt(0)
+        ,fHistMCChargedTotE(0)
+        ,fChargedEtNtuple(0)
+        ,fChargedEtRecMCNtuple(0)
+        ,fChargedEtRecGeomNtuple(0)
+        ,fChargedEtMCGeomNtuple(0)
+        ,fHistPhivsPtPos(0)
+        ,fHistPhivsPtNeg(0)
+        ,fHistEtRecvsEtMC(0)
+        ,fHistTMDeltaR(0)
+        ,fSumEtRec(0)
+        ,fSumEtMC(0)
+        ,fEtaCut(0.5)
+        ,fEtaCutAcc(0.12)
+        ,fPhiCutAccMin(260.*TMath::Pi()/180.)
+        ,fPhiCutAccMax(320.*TMath::Pi()/180.)
+        ,fVertexXCut(0.5)
+        ,fVertexYCut(0.5)
+        ,fVertexZCut(12.0)
+        ,fIPxyCut(1.5)
+        ,fIPzCut(1.5)
+        ,fTriggerSelection(false)
+        ,fCount(0)
+        ,fkPhotonPdg(22)
 
-  // Define input and output slots here
-  // Input slot #0 works with a TChain
-  //  DefineInput(0, TChain::Class());
-  // Output slot #1 writes into a TH1 container
-  DefineOutput(1, TH1F::Class());
-  DefineOutput(2, TH1F::Class());
-  DefineOutput(3, TH1F::Class());
-  DefineOutput(4, TH1F::Class());
-  DefineOutput(5, TNtuple::Class());
-  DefineOutput(6, TNtuple::Class());
-  DefineOutput(7, TNtuple::Class());
-  DefineOutput(8, TNtuple::Class());
+{
+    // Constructor
+
+    // Define input and output slots here
+    // Input slot #0 works with a TChain
+    DefineInput(0, TChain::Class());
+    // Output slot #1 writes into a TH1 container
+
+    DefineOutput(1, TList::Class());
+
 }
 
-// //________________________________________________________________________
-// void AliAnalysisTaskTotEt::ConnectInputData(Option_t *) 
-// {
-//   // Connect ESD or AOD here
-//   // Called once
-
-//   TTree* tree = dynamic_cast<TTree*> (GetInputData(0));
-//   if (!tree) 
-//     {
-//       Printf("ERROR: Could not read chain from input slot 0");
-//     } 
-//   else 
-//     {
-//       // Disable all branches and enable only the needed ones
-//       // The next two lines are different when data produced as AliESDEvent is read
-//       //tree->SetBranchStatus("*", kFALSE);
-//       //    tree->SetBranchStatus("Tracks.*", kTRUE);
-//       tree->SetBranchStatus("CaloClusters.*", kTRUE);
-      
-//       AliESDInputHandler *esdH = dynamic_cast<AliESDInputHandler*> (AliAnalysisManager::GetAnalysisManager()->GetInputEventHandler());
-      
-//       if (!esdH) 
-// 	{
-// 	  Printf("ERROR: Could not get ESDInputHandler");
-// 	} 
-//       else
-// 	{
-// 	  fESD = esdH->GetEvent();
-// 	}
-//     }
-// }
 
 //________________________________________________________________________
 void AliAnalysisTaskTotEt::UserCreateOutputObjects()
 {
-  // Create histograms
-  // Called once
+    // Create histograms
+    // Called once
 
-  fHistEt = new TH1F("fHistEt", "Total E_{T} distribution", 1000, 0, 99);
-  fHistEt->GetXaxis()->SetTitle("E_{T} (GeV/c^{2})");
-  fHistEt->GetYaxis()->SetTitle("dN/dE_{T} (c^{2}/GeV)");
-  fHistEt->SetMarkerStyle(kFullCircle);
-  fHistEt->SetMarkerColor(kMagenta);
+    fOutputList = new TList;
 
-  fHistTotEtCells = new TH1F("fHistTotEtCells", "Total E_{T} distribution (sum of cells)", 1000, 0, 99);
-  fHistTotEtCells->GetXaxis()->SetTitle("E_{T} (GeV/c^{2})");
-  fHistTotEtCells->GetYaxis()->SetTitle("dN/dE_{T} (c^{2}/GeV)");
-  fHistTotEtCells->SetMarkerStyle(kFullCircle);
-  fHistTotEtCells->SetMarkerColor(kBlue);
+    fHistEt = new TH1F("fHistEt", "Total E_{T} distribution", 1000, 0.0001, 99);
+    fHistEt->GetXaxis()->SetTitle("E_{T} (GeV/c^{2})");
+    fHistEt->GetYaxis()->SetTitle("dN/dE_{T} (c^{2}/GeV)");
+    fHistEt->SetMarkerStyle(kFullCircle);
+    fHistEt->SetMarkerColor(kMagenta);
+    fOutputList->Add(fHistEt);
 
-  fHistEtCells = new TH1F("fHistEtCells", "E_{T} distribution for single cells)", 100, 0.001, 0.1);
-  fHistEtCells->GetXaxis()->SetTitle("E_{T} (GeV/c^{2})");
-  fHistEtCells->GetYaxis()->SetTitle("dN/dE_{T} (c^{2}/GeV)");
-  fHistEtCells->SetMarkerStyle(kFullCircle);
-  fHistEtCells->SetMarkerColor(kGreen);
+    fHistTotE = new TH1F("fHistTotE", "Total Energy distribution", 1000, 0, 99);
+    fHistTotE->GetXaxis()->SetTitle("E_{T} (GeV/c^{2})");
+    fHistTotE->GetYaxis()->SetTitle("dN/dE_{T} (c^{2}/GeV)");
+    fHistTotE->SetMarkerStyle(kFullCircle);
+    fHistTotE->SetMarkerColor(kRed);
+    fOutputList->Add(fHistTotE);
 
-  fHistTotE = new TH1F("fHistTotE", "Total Energy distribution", 1000, 0, 99);
-  fHistTotE->GetXaxis()->SetTitle("E_{T} (GeV/c^{2})");
-  fHistTotE->GetYaxis()->SetTitle("dN/dE_{T} (c^{2}/GeV)");
-  fHistTotE->SetMarkerStyle(kFullCircle);
-  fHistTotE->SetMarkerColor(kRed);
-  
-//   char title[128];
-//   fHistCell = new TObjArray(17920);
-//   fHistCell->SetOwner(kTRUE);
-//   for(int i = 0; i < 17920; i++)
-//     {
-//       sprintf(title, "Cell_%d", i);
-//       fHistCell->Add(new TH1F(title, title, 100, 0.001, 0.1));
-//     }
+    fHistMult = new TH1F("fHistMult", "Total Multiplicity", 100, 0, 199);
+    fHistMult->GetXaxis()->SetTitle("N");
+    fHistMult->GetYaxis()->SetTitle("Multiplicity");
+    fHistMult->SetMarkerStyle(kFullCircle);
+    fHistMult->SetMarkerColor(kRed);
+    fOutputList->Add(fHistMult);
 
-  fEtNtuple = new TNtuple("fEtNtuple", "EtNtuple", "TotE:TotEt:TotEtCells");
-  fEtRecMCNtuple = new TNtuple("fEtRecMCNtuple", "EtRecMCNtuple", "RecTotE:RecTotEt:MCTotE:MCTotEt");
-  fEtRecGeomNtuple = new TNtuple("fEtRecGeomNtuple", "EtRecGeomNtuple", "RecE:RecEt:Eta:Phi");
-  fEtMCGeomNtuple = new TNtuple("fEtMCGeomNtuple", "EtMCGeomNtuple", "MCE:MCEt:MCEta:MCPhi");
+    fHistMCEt = new TH1F("fHistMCEt", "MC Total E_{T} distribution", 1000, 0.0001, 99);
+    fHistMCEt->GetXaxis()->SetTitle("E_{T} (GeV/c^{2})");
+    fHistMCEt->GetYaxis()->SetTitle("dN/dE_{T} (c^{2}/GeV)");
+    fHistMCEt->SetMarkerStyle(kFullCircle);
+    fHistMCEt->SetMarkerColor(kMagenta);
+    fOutputList->Add(fHistMCEt);
+
+    fHistMCTotE = new TH1F("fHistMCTotE", "MC Total Energy distribution", 1000, 0, 99);
+    fHistMCTotE->GetXaxis()->SetTitle("E_{T} (GeV/c^{2})");
+    fHistMCTotE->GetYaxis()->SetTitle("dN/dE_{T} (c^{2}/GeV)");
+    fHistMCTotE->SetMarkerStyle(kFullCircle);
+    fHistMCTotE->SetMarkerColor(kRed);
+    fOutputList->Add(fHistMCTotE);
+
+    fEtNtuple = new TNtuple("fEtNtuple", "EtNtuple", "TotE:TotEt");
+    fOutputList->Add(fEtNtuple);
+
+    fEtRecMCNtuple = new TNtuple("fEtRecMCNtuple", "EtRecMCNtuple", "RecTotE:RecTotEt:MCTotE:MCTotEt");
+    fOutputList->Add(fEtRecMCNtuple);
+
+    fEtRecGeomNtuple = new TNtuple("fEtRecGeomNtuple", "EtRecGeomNtuple", "RecE:RecEt:Eta:Phi");
+    fOutputList->Add(fEtRecGeomNtuple);
+
+    fEtMCGeomNtuple = new TNtuple("fEtMCGeomNtuple", "EtMCGeomNtuple", "MCE:MCEt:MCEta:MCPhi");
+    fOutputList->Add(fEtMCGeomNtuple);
+
+    fHistNeutralEt = new TH1F("fHistNeutralEt", "Total Neutral E_{T} distribution", 1000, 0.0001, 99);
+    fHistNeutralEt->GetXaxis()->SetTitle("E_{T} (GeV/c^{2})");
+    fHistNeutralEt->GetYaxis()->SetTitle("dN/dE_{T} (c^{2}/GeV)");
+    fHistNeutralEt->SetMarkerStyle(kFullCircle);
+    fHistNeutralEt->SetMarkerColor(kMagenta);
+    fOutputList->Add(fHistNeutralEt);
+
+    fHistNeutralTotE = new TH1F("fNeutralHistTotE", "Total Neutral Energy distribution", 1000, 0, 99);
+    fHistNeutralTotE->GetXaxis()->SetTitle("E_{T} (GeV/c^{2})");
+    fHistNeutralTotE->GetYaxis()->SetTitle("dN/dE_{T} (c^{2}/GeV)");
+    fHistNeutralTotE->SetMarkerStyle(kFullCircle);
+    fHistNeutralTotE->SetMarkerColor(kRed);
+    fOutputList->Add(fHistNeutralTotE);
+
+    fHistNeutralMult = new TH1F("fHistNeutralMult", "Neutral Multiplicity", 100, 0, 199);
+    fHistNeutralMult->GetXaxis()->SetTitle("N");
+    fHistNeutralMult->GetYaxis()->SetTitle("Multiplicity");
+    fHistNeutralMult->SetMarkerStyle(kFullCircle);
+    fHistNeutralMult->SetMarkerColor(kRed);
+    fOutputList->Add(fHistNeutralMult);
+
+    fHistMCNeutralEt = new TH1F("fHistMCNeutralEt", "MC Total Nuetral E_{T} distribution", 1000, 0.0001, 99);
+    fHistMCNeutralEt->GetXaxis()->SetTitle("E_{T} (GeV/c^{2})");
+    fHistMCNeutralEt->GetYaxis()->SetTitle("dN/dE_{T} (c^{2}/GeV)");
+    fHistMCNeutralEt->SetMarkerStyle(kFullCircle);
+    fHistMCNeutralEt->SetMarkerColor(kMagenta);
+    fOutputList->Add(fHistMCNeutralEt);
+
+    fHistMCNeutralTotE = new TH1F("fNeutralHistTotE", "MC Total Neutral Energy distribution", 1000, 0, 99);
+    fHistMCNeutralTotE->GetXaxis()->SetTitle("E_{T} (GeV/c^{2})");
+    fHistMCNeutralTotE->GetYaxis()->SetTitle("dN/dE_{T} (c^{2}/GeV)");
+    fHistMCNeutralTotE->SetMarkerStyle(kFullCircle);
+    fHistMCNeutralTotE->SetMarkerColor(kRed);
+    fOutputList->Add(fHistMCNeutralTotE);
+
+    fNeutralEtNtuple = new TNtuple("fNeutralEtNtuple", "NeutralEtNtuple", "TotE:TotEt");
+    fOutputList->Add(fNeutralEtNtuple);
+
+    fNeutralEtRecMCNtuple = new TNtuple("fNeutralEtRecMCNtuple", "NeutralEtRecMCNtuple", "RecTotE:RecTotEt:MCTotE:MCTotEt");
+    fOutputList->Add(fNeutralEtRecMCNtuple);
+
+    fNeutralEtRecGeomNtuple = new TNtuple("fNeutralEtRecGeomNtuple", "NeutralEtRecGeomNtuple", "RecE:RecEt:Eta:Phi");
+    fOutputList->Add(fNeutralEtRecGeomNtuple);
+
+    fNeutralEtMCGeomNtuple = new TNtuple("fNeutralEtMCGeomNtuple", "NeutralEtMCGeomNtuple", "MCE:MCEt:MCEta:MCPhi");
+    fOutputList->Add(fNeutralEtMCGeomNtuple);
+
+    fHistChargedEt = new TH1F("fHistChargedEt", "Total Charged E_{T} distribution", 1000, 0.0001, 99);
+    fHistChargedEt->GetXaxis()->SetTitle("E_{T} (GeV/c^{2})");
+    fHistChargedEt->GetYaxis()->SetTitle("dN/dE_{T} (c^{2}/GeV)");
+    fHistChargedEt->SetMarkerStyle(kFullCircle);
+    fHistChargedEt->SetMarkerColor(kMagenta);
+    fOutputList->Add(fHistChargedEt);
+
+    fHistChargedTotE = new TH1F("fChargedHistTotE", "Total Charged Energy distribution", 1000, 0, 99);
+    fHistChargedTotE->GetXaxis()->SetTitle("E_{T} (GeV/c^{2})");
+    fHistChargedTotE->GetYaxis()->SetTitle("dN/dE_{T} (c^{2}/GeV)");
+    fHistChargedTotE->SetMarkerStyle(kFullCircle);
+    fHistChargedTotE->SetMarkerColor(kRed);
+    fOutputList->Add(fHistChargedTotE);
+
+    fHistChargedMult = new TH1F("fHistChargedMult", "Charged Multiplicity", 100, 0, 199);
+    fHistChargedMult->GetXaxis()->SetTitle("N");
+    fHistChargedMult->GetYaxis()->SetTitle("Multiplicity");
+    fHistChargedMult->SetMarkerStyle(kFullCircle);
+    fHistChargedMult->SetMarkerColor(kRed);
+    fOutputList->Add(fHistChargedMult);
+
+    fHistMCChargedEt = new TH1F("fHistMCChargedEt", "MC Total Charged E_{T} distribution", 1000, 0.0001, 99);
+    fHistMCChargedEt->GetXaxis()->SetTitle("E_{T} (GeV/c^{2})");
+    fHistMCChargedEt->GetYaxis()->SetTitle("dN/dE_{T} (c^{2}/GeV)");
+    fHistMCChargedEt->SetMarkerStyle(kFullCircle);
+    fHistMCChargedEt->SetMarkerColor(kMagenta);
+    fOutputList->Add(fHistMCChargedEt);
+
+    fHistMCChargedTotE = new TH1F("fChargedHistTotE", "MC Total Charged Energy distribution", 1000, 0, 99);
+    fHistMCChargedTotE->GetXaxis()->SetTitle("E_{T} (GeV/c^{2})");
+    fHistMCChargedTotE->GetYaxis()->SetTitle("dN/dE_{T} (c^{2}/GeV)");
+    fHistMCChargedTotE->SetMarkerStyle(kFullCircle);
+    fHistMCChargedTotE->SetMarkerColor(kRed);
+    fOutputList->Add(fHistMCChargedTotE);
+
+    fChargedEtNtuple = new TNtuple("fChargedEtNtuple", "ChargedEtNtuple", "TotE:TotEt");
+    fOutputList->Add(fChargedEtNtuple);
+
+    fChargedEtRecMCNtuple = new TNtuple("fChargedEtRecMCNtuple", "ChargedEtRecMCNtuple", "RecTotE:RecTotEt:MCTotE:MCTotEt");
+    fOutputList->Add(fChargedEtRecMCNtuple);
+
+    fChargedEtRecGeomNtuple = new TNtuple("fChargedEtRecGeomNtuple", "ChargedEtRecGeomNtuple", "RecE:RecEt:Eta:Phi");
+    fOutputList->Add(fChargedEtRecGeomNtuple);
+
+    fChargedEtMCGeomNtuple = new TNtuple("fChargedEtMCGeomNtuple", "ChargedEtMCGeomNtuple", "MCE:MCEt:MCEta:MCPhi");
+    fOutputList->Add(fChargedEtMCGeomNtuple);
+
+    fHistPhivsPtPos = new TH2F("fHistPhivsPtPos", "Phi vs pT of positively charged tracks in PHOS", 	100, 0, 2*TMath::Pi(), 200, 0, 100);
+    fOutputList->Add(fHistPhivsPtPos);
+    fHistPhivsPtNeg = new TH2F("fHistPhivsPtNeg", "Phi vs pT of negatively charged tracks in PHOS", 	100, 0, 2*TMath::Pi(), 200, 0, 100);
+    fOutputList->Add(fHistPhivsPtNeg);
+
+    fHistEtRecvsEtMC = new TH2F("fHistEtRecvsEtMC", "Reconstructed E_{t} vs MC E_{t}", 1000, 0.0001, 100, 1000, 0.0001, 100);
+    fOutputList->Add(fHistEtRecvsEtMC);
+
+    fHistTMDeltaR = new TH1F("fHistTMDeltaR", "#Delta R for PHOS clusters", 200, 0, 50);
+    fOutputList->Add(fHistTMDeltaR);
 
 }
 
 //________________________________________________________________________
-void AliAnalysisTaskTotEt::UserExec(Option_t *) 
+void AliAnalysisTaskTotEt::UserExec(Option_t *)
 {
-  // Main loop
-  // Called for each event
+    // Main loop
+    // Called for each event
 
-  Float_t totEt = 0;
-  Float_t totEnergy = 0;
-  Float_t totEtCells = 0;
-  Float_t position[3];
+    Float_t totEt = 0;
+    Float_t totEnergy = 0;
 
-  Float_t mcTotEt = 0;
-  Float_t mcTotEnergy = 0;
-  Float_t mcTotNeutralEnergy = 0;
-  Float_t mcTotNeutralEt = 0;
-  Float_t mcTotChargedEnergy = 0;
-  Float_t mcTotChargedEt = 0;
-  
+    Float_t totNeutralEt = 0;
+    Float_t totNeutralEnergy = 0;
 
-  //AliVEvent *event = InputEvent();
-  AliESDEvent *event = dynamic_cast<AliESDEvent*>(InputEvent());
-  if (!event) {
-     Printf("ERROR: Could not retrieve event");
-     return;
-  }
+    Float_t totChargedEt = 0;
+    Float_t totChargedEtAcc = 0;
+    Float_t totChargedEnergy = 0;
+    Float_t totChargedEnergyAcc = 0;
 
-  AliMCEvent* mcEvent = MCEvent();
-  if (!mcEvent) {
-     Printf("ERROR: Could not retrieve MC event");
-     return;
-  }
+    Float_t totNeutralEtCells = 0;
+    Float_t position[3];
 
-  // if(Entry()==0){
-  //   AliESDEvent* esd = dynamic_cast<AliESDEvent*>(event);
-  //   AliAODEvent* aod = dynamic_cast<AliAODEvent*>(event);
-  //   if(esd){
-  //     Printf("We are reading from ESD");
-  //   }
-  //   else if(aod){
-  //     Printf("We are reading from AOD");
-  //   }
-  // }
-  
-  //  Printf("There are %d clusters in this event", event->GetNumberOfCaloClusters());
-  //Printf("There are %d tracks in this event", event->GetNumberOfTracks());
+    Float_t mcTotEt = 0;
+    Float_t mcTotEtAcc = 0;
+    Float_t mcTotEnergy = 0;
+    Float_t mcTotNeutralEnergy = 0;
+    Float_t mcTotNeutralEt = 0;
+    Float_t mcTotNeutralEtAcc = 0;
+    Float_t mcTotChargedEnergy = 0;
+    Float_t mcTotChargedEt = 0;
+    Float_t mcTotChargedEtAcc = 0;
 
-  for(Int_t iPart = 0; iPart < mcEvent->GetNumberOfTracks(); iPart++) 
+    //AliVEvent *event = InputEvent();
+    AliESDEvent *event = dynamic_cast<AliESDEvent*>(InputEvent());
+    if (!event) {
+        Printf("ERROR: Could not retrieve event");
+        return;
+    }
+
+    //fCount++;
+
+    if (fTriggerSelection && !event->IsTriggerClassFired("CINT1B-ABCE-NOPF-ALL")) return;
+
+    AliMCEvent* mcEvent = MCEvent();
+    Double_t totZ = 0;
+    Double_t totY = 0;
+    Double_t totX = 0;
+    if (mcEvent)
     {
-      
-      AliMCParticle *part = dynamic_cast<AliMCParticle*>(mcEvent->GetTrack(iPart));
-      if (!part) 
-	{
-	  Printf("ERROR: Could not receive particle %d", iPart);
-	  continue;
-	}
 
-      mcTotEnergy += part->E();
-      mcTotEt += part->E() * part->Theta();
-      if(part->PdgCode() == fkPhotonPdg)
-	{
-	  mcTotNeutralEnergy += part->E();
-	  mcTotNeutralEt += part->E()*part->Theta();
-	}
-      else if(part->Charge() != 0)
-	{
-	  mcTotChargedEnergy += part->E();
-	  mcTotChargedEt += part->E()*part->Theta();
-	}
-      if(ParticleInPHOS(part))
-	{
-	}
-      else if(ParticleInEMCAL(part))
-	{
-	}
-      else
-	{
-	}
+        //     Printf("Got MC event with %d particles!", mcEvent->GetNumberOfTracks());
+
+        AliStack *stack = mcEvent->Stack();
+
+        //Int_t nPrim = stack->GetNprimary();
+        Int_t nPrim = stack->GetNtrack();
+        Printf("Number of particles in MC event: %d", nPrim);
+
+        Int_t nnn =0;
+        for (Int_t iPart = 0; iPart < nPrim; iPart++)
+        {
+            //Printf("Got %d particles!", mcEvent->GetNumberOfTracks());
+            //AliMCParticle *part = dynamic_cast<AliMCParticle*>(mcEvent->GetTrack(iPart));
+
+            TParticle *part = stack->Particle(iPart);
+            //part->Print();
+            //Printf("Daugthers: %d %d", part->GetDaughter(0), part->GetDaughter(1)) ;
+            //if(part->GetDaughter(0) > 0) Printf("PDG: %s %s", stack->Particle(part->GetDaughter(0))->GetPDG(0)->GetName(), stack->Particle(part->GetDaughter(1))->GetPDG(0)->GetName());
+            //if(part->GetDaughter(0) == -1 && part->GetDaughter(1) == -1) {
+
+
+            TParticlePDG *pc = part->GetPDG(0);
+
+	    if(!stack->IsPhysicalPrimary(iPart)) continue;
+	    if(TMath::Abs(pc->Charge()) != 3 && pc->Charge() != 0)continue;
+	    //part->Print();
+	    totZ += part->Pz();
+                    totY += part->Py();
+                    totX += part->Px();
+            nnn++;
+            //Printf("particle index: %d, energy: %f, mother: %d", iPart,  part->Energy(), part->GetMother(0));
+
+//	    part->Print();
+
+            if (!part)
+            {
+                Printf("ERROR: Could not receive particle %d", iPart);
+                continue;
+            }
+
+            if (TMath::Abs(part->Eta()) < fEtaCut)
+            {
+                fCount++;
+
+                TParticlePDG *pdgCode =  part->GetPDG(0);
+
+
+                mcTotEnergy += part->Energy();
+                //mcTotEt += part->Energy() * TMath::Sin(part->Theta());
+                //if (pdgCode->PdgCode() == fkPhotonPdg || pdgCode->PdgCode() == 111)
+                if (pdgCode->Charge() == 0)
+                {
+                    //             mcTotEt += part->Energy()*TMath::Sin(part->Theta());
+                    mcTotNeutralEnergy += part->Energy();
+                    mcTotNeutralEt += part->Energy()*TMath::Sin(part->Theta());
+                    if (TMath::Abs(part->Eta()) < fEtaCutAcc && part->Phi() < fPhiCutAccMax && part->Phi() > fPhiCutAccMin)
+                    {
+                        mcTotNeutralEtAcc += part->Energy()*TMath::Sin(part->Theta());
+                        mcTotEtAcc += part->Energy()*TMath::Sin(part->Theta());
+                    }
+                }
+                else if (pdgCode->Charge() != 0)
+                {
+                    //          mcTotEt += part->Energy()*TMath::Sin(part->Theta());
+                    mcTotChargedEnergy += part->Energy();
+                    mcTotChargedEt += part->Energy()*TMath::Sin(part->Theta());
+                    if (TMath::Abs(part->Eta()) < fEtaCutAcc && part->Phi() < fPhiCutAccMax && part->Phi() > fPhiCutAccMin)
+                    {
+                        mcTotChargedEtAcc += part->Energy()*TMath::Sin(part->Theta());
+                        mcTotEtAcc += part->Energy()*TMath::Sin(part->Theta());
+                    }
+                }
+                //    if (ParticleInPHOS(part))
+                {
+                }
+                // else if (ParticleInEMCAL(part))
+                {
+                }
+                // else
+                {
+                }
+            }
+        }
+        Printf("Number of primaries: %d", nnn);
     }
+    Printf("Total mom: px = %f, py = %f, pz = %f", totX, totY, totZ);
+    Int_t chargedMultiplicity = 0;
 
-  for(Int_t iCluster = 0; iCluster < event->GetNumberOfCaloClusters(); iCluster++) 
-  // for(Int_t iCluster = 0; iCluster < 2; iCluster++) 
+    for (Int_t iTrack = 0; iTrack < event->GetNumberOfTracks(); iTrack++)
     {
-      AliESDCaloCluster* cluster = event->GetCaloCluster(iCluster);
-      if (!cluster) 
-	{
-	  Printf("ERROR: Could not get cluster %d", iCluster);
-	  continue;
-	}
-      // if(cluster->IsPHOS())
-      // 	{
-	  totEnergy += cluster->E(); 
+        AliVParticle *track = event->GetTrack(iTrack);
+        if (!track)
+        {
+            Printf("ERROR: Could not get track %d", iTrack);
+            continue;
+        }
 
-	  cluster->GetPosition(position);
 
-	  float dist = TMath::Sqrt(position[0]*position[0] + position[1]*position[1]);
 
-	  float eta = TMath::Log(TMath::Abs( TMath::Tan( 0.5 * (TMath::ATan(position[2]/dist) + TMath::Pi()/2) ) ) );
-	  float theta = TMath::ATan(position[2]/dist)+TMath::Pi()/2;
-	  //	  float eta = - TMath::Log(0.5*TMath::ATan(position[2]/dist));
-	  //	  cout << eta << endl;
-	  //	  totEt += cluster->E() * (TMath::Sin(TMath::ATan(position[2]/dist)));
-	  totEt += cluster->E() * TMath::Sin(theta);
-	  //	}
+//      if(TMath::Abs(track->Eta()) < fEtaCut && track->E() > 0.5)
+        Int_t nItsClusters = dynamic_cast<AliESDtrack*>(track)->GetNcls(0);
+        Int_t nTPCClusters = dynamic_cast<AliESDtrack*>(track)->GetNcls(1);
+
+        if (TMath::Abs(track->Eta()) < fEtaCut && CheckGoodVertex(track) && nItsClusters > 3 && nTPCClusters > 15)
+        {
+            totChargedEnergy += track->E();
+            totChargedEt +=  track->E() * TMath::Sin(track->Theta());
+            chargedMultiplicity++;
+
+            if (TMath::Abs(track->Eta()) < fEtaCutAcc && track->Phi() < fPhiCutAccMax && track->Phi() > fPhiCutAccMin)
+            {
+                Printf("Track in acceptance: eta = %f, phi = %f", track->Eta(), track->Phi());
+                totChargedEtAcc += track->E()*TMath::Sin(track->Theta());
+            }
+        }
+
+        Double_t phi = track->Phi();
+        Double_t pt = track->Pt();
+        if (TrackHitsPHOS(track, event->GetMagneticField()))
+        {
+            if (track->Charge() > 0) fHistPhivsPtPos->Fill(phi,pt);
+            else fHistPhivsPtNeg->Fill(phi, pt);
+        }
     }
 
-  AliESDCaloCells* cells = event->GetPHOSCells();
-  
-  if(cells) 
-    { 
-      Short_t cellNumber = 0;
-      Double_t cellAmplitude = 0;
-      Double_t cellTime = 0;
-      
-      for(Short_t iCell = 0; iCell < cells->GetNumberOfCells(); iCell++)
-	{
-	  if(!cells->GetCell(iCell, cellNumber, cellAmplitude, cellTime))
-	    {
-	      Printf("ERROR: Could not receive cell %d", iCell);
-	      continue;
-	    }
-	  //	  if(cellAmplitude && event->GetNumberOfCaloClusters() == 0)
-	  if(cellAmplitude)
-	    {
-	      //      cout << "Cell amplitude: " << cellAmplitude << endl;
-	      totEtCells += cellAmplitude;
-	      fHistEtCells->Fill(cellAmplitude);
-	      //	      dynamic_cast<TH1F*>(fHistCell->At(cellNumber-1))->Fill(cellAmplitude);
-	      cellAmplitude = 0;
-	    }
-	}
+    Int_t neutralMultiplicity = 0;
+
+    for (Int_t iCluster = 0; iCluster < event->GetNumberOfCaloClusters(); iCluster++)
+    {
+        AliESDCaloCluster* cluster = event->GetCaloCluster(iCluster);
+        if (!cluster)
+        {
+            Printf("ERROR: Could not get cluster %d", iCluster);
+            continue;
+        }
+
+        if (!cluster->IsPHOS()) continue;
+        Float_t pos[3];
+        cluster->GetPosition(pos);
+        if (pos[0] < -(32.0*2.2)) continue; //Ensure that modules 0 and 1 are not used
+        Printf("Energy: %f, distance to track: %f\n", cluster->E(), cluster->GetEmcCpvDistance());
+        fHistTMDeltaR->Fill(cluster->GetEmcCpvDistance());
+        if (cluster->E() < 0.5 && cluster->GetEmcCpvDistance() < 10.0)
+        {
+            continue;
+            //AliVParticle *matchedTrack = event->GetTrack(cluster->GetTrackMatched());
+// 	    if(CheckGoodVertex(matchedTrack))
+// 	    {
+// 	       totChargedEnergy +=  matchedTrack->E();;
+// 	       totChargedEt += matchedTrack->E()*TMath::Sin(matchedTrack);
+// 	    }
+        }
+        if (cluster->E() >  0.5 && cluster->GetNCells() == 1) continue;
+        totNeutralEnergy += cluster->E();
+
+        cluster->GetPosition(position);
+
+        float dist = TMath::Sqrt(position[0]*position[0] + position[1]*position[1]);
+
+        float eta = TMath::Log(TMath::Abs( TMath::Tan( 0.5 * (TMath::ATan(position[2]/dist) + TMath::Pi()/2) ) ) );
+        float theta = TMath::ATan(position[2]/dist)+TMath::Pi()/2;
+        totNeutralEt += cluster->E() * TMath::Sin(theta);
+        neutralMultiplicity++;
     }
-  if(event->GetNumberOfCaloClusters() == 0)
-    fCount++;
 
-  fHistEt->Fill(totEt);
-  fHistTotE->Fill(totEnergy);
-  fHistTotEtCells->Fill(totEtCells);//- 6167.59004237288173);
-  fEtNtuple->Fill(totEnergy, totEt, totEtCells);
 
-  fEtRecMCNtuple->Fill(totEnergy, totEt, mcTotEnergy, mcTotEt);
-   // Post output data.
-  PostData(1, fHistEt);
-  PostData(2, fHistTotEtCells);
-  PostData(3, fHistEtCells);
-  PostData(4, fHistTotE);
-  PostData(5, fEtNtuple);
-  PostData(6, fEtRecMCNtuple);
-  //PostData(3, fHistCell);
-}      
+
+//    totEt = CorrectForCaloAcceptance(totNeutralEt) + totChargedEt;
+    //totEnergy =CorrectForCaloAcceptance(totNeutralEnergy) + totChargedEnergy;
+    totEt = totNeutralEt + totChargedEt;
+    totEnergy =totNeutralEnergy + totChargedEnergy;
+    mcTotEt = mcTotChargedEt + mcTotNeutralEt;
+
+
+    fSumEtMC += mcTotEt;
+    fSumEtRec += totEt;
+    fSumEtRecAcc += totChargedEtAcc+totNeutralEt;
+
+    fHistEt->Fill(totEt);
+    fHistTotE->Fill(totEnergy);
+    fHistMult->Fill(chargedMultiplicity+neutralMultiplicity);
+    fHistMCEt->Fill(mcTotEt);
+    fHistMCTotE->Fill(mcTotEnergy);
+
+    fHistNeutralEt->Fill(CorrectForCaloAcceptance(totNeutralEt));
+    fHistNeutralTotE->Fill(CorrectForCaloAcceptance(totNeutralEnergy));
+    fHistNeutralMult->Fill(neutralMultiplicity);
+    fHistMCNeutralEt->Fill(mcTotNeutralEt);
+    fHistMCNeutralTotE->Fill(mcTotEnergy);
+
+    fHistChargedEt->Fill(totChargedEt);
+    fHistChargedTotE->Fill(totChargedEnergy);
+    fHistChargedMult->Fill(chargedMultiplicity);
+    fHistMCChargedEt->Fill(mcTotChargedEt);
+    fHistMCChargedTotE->Fill(mcTotChargedEnergy);
+
+    fEtNtuple->Fill(totEnergy, totEt);
+    //fEtRecGeomNtuple->Fill(totEnergy, totEt,
+    if (mcEvent)
+    {
+        fEtRecMCNtuple->Fill(totEnergy, totEt, mcTotEnergy, mcTotEt);
+    }
+
+    fHistEtRecvsEtMC->Fill(totChargedEtAcc + totNeutralEnergy, mcTotEt);
+
+
+    Printf("fSumEtMC = %f, fSumEtRecAcc = %f, fSumEtRec = %f", fSumEtMC, fSumEtRecAcc, fSumEtRec);
+
+    Printf("Count: %d", fCount);
+
+    // Post output data.
+    PostData(1, fOutputList);
+
+}
 
 //________________________________________________________________________
-void AliAnalysisTaskTotEt::Terminate(Option_t *) 
+void AliAnalysisTaskTotEt::Terminate(Option_t *)
 {
-  // Draw result to the screen
-  // Called once at the end of the query
+    // Draw result to the screen
+    // Called once at the end of the query
 
-  fHistEt = dynamic_cast<TH1F*> (GetOutputData(1)); 
-  fHistTotEtCells = dynamic_cast<TH1F*> (GetOutputData(2)); 
-  fHistEtCells = dynamic_cast<TH1F*> (GetOutputData(3)); 
-  fHistTotE = dynamic_cast<TH1F*> (GetOutputData(4)); 
-  fEtNtuple = dynamic_cast<TNtuple*>(GetOutputData(5));
+    fOutputList = dynamic_cast<TList*> (GetOutputData(1));
+    if (!fOutputList) {
+        printf("ERROR: Output list not available\n");
+        return;
+    }
+    fHistEt = dynamic_cast<TH1F*> (fOutputList->At(0));
 
-  if (!fHistEt) {
-    Printf("ERROR: fHistEt not available");
-    return;
-  }
-  if (!fHistTotEtCells) {
-    Printf("ERROR: fHistTotEtCells not available");
-    return;
-  }
-  if (!fHistEtCells) {
-    Printf("ERROR: fHistEtCells not available");
-    return;
-  }
-  if (!fEtNtuple) {
-    Printf("ERROR: fEtNtuple not available");
-    return;
-  }
-  
-  TCanvas *c1 = new TCanvas("AliAnalysisTaskTotEt","Et",10,10,510,510);
-  c1->cd(1)->SetLogy();
-  fHistEt->Draw("E");
+    Printf("Correction factor: %f", fSumEtMC/fSumEtRecAcc);
 
-  //  TCanvas *c2 = new TCanvas("AliAnalysisTaskTotEt","EtTotCells",10,10,510,510);
-  //  c2->cd(1)->SetLogy();
-  //fHistTotEtCells->Draw("same");
-  
-  // TCanvas *c3 = new TCanvas("AliAnalysisTaskTotEt","EtCells",10,10,510,510);
-  //  c2->cd(1)->SetLogy();
-  //fHistEtCells->Draw("same");
+    TCanvas *c1 = new TCanvas("AliAnalysisTaskTotEt","Et",10,10,510,510);
+    c1->cd(1)->SetLogy();
+    fHistEt->Draw("E");
+}
+
+Float_t AliAnalysisTaskTotEt::CorrectForCaloAcceptance(Float_t energy)
+{
+    return energy;
+    Float_t etaFactor = 1.0/0.12;
+    Float_t phiFactor = 360.0/60.0;
+    Float_t branchCorrFactor = 1.0/(1.0/12.0);
+    return energy*etaFactor*phiFactor*branchCorrFactor;
+}
+
+
+bool AliAnalysisTaskTotEt::CheckGoodVertex(AliVParticle* track)
+{
+    Float_t bxy = 999.;
+    Float_t bz = 999.;
+    dynamic_cast<AliESDtrack*>(track)->GetImpactParametersTPC(bxy,bz);
+
+    return TMath::Abs(track->Xv()) < fVertexXCut && TMath::Abs(track->Yv()) < fVertexYCut && TMath::Abs(track->Zv()) < fVertexZCut && TMath::Abs(bxy) < fIPxyCut && TMath::Abs(bz) < fIPzCut;;
 }
 
 bool
 AliAnalysisTaskTotEt::ParticleInPHOS(AliMCParticle *particle)
 {
-  return false;
+    return false;
 }
 
 bool
 AliAnalysisTaskTotEt::ParticleInEMCAL(AliMCParticle *particle)
 {
-  return false;
+    return false;
 }
+
+bool AliAnalysisTaskTotEt::TrackHitsPHOS(AliVParticle* track, Double_t magField)
+{
+    AliESDtrack *esdTrack = dynamic_cast<AliESDtrack*>(track);
+    // Printf("Propagating track: eta: %f, phi: %f, pt: %f", esdTrack->Eta(), esdTrack->Phi(), esdTrack->Pt());
+
+    Bool_t prop = esdTrack->PropagateTo(460.0, magField);
+
+    //if(prop)Printf("Track propagated, eta: %f, phi: %f, pt: %f", esdTrack->Eta(), esdTrack->Phi(), esdTrack->Pt());
+    return prop&& TMath::Abs(esdTrack->Eta()) < 0.12 && esdTrack->Phi() > 260.*TMath::Pi()/180. && esdTrack->Phi() < 320.*TMath::Pi()/180.;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
