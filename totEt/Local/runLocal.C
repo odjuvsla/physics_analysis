@@ -50,6 +50,8 @@ void runLocal() {
   *///  chain->SetBranchStatus("*Calo*",0);
   TChain *chain = new TChain("esdTree");
   chain->Add("/media/wd/data/LHC10b/10000116134019.10/AliESDs.root");
+  chain->Add("/media/wd/data/LHC10b/10000116134019.30/AliESDs.root");
+  chain->Add("/media/wd/data/LHC10b/10000116134019.40/AliESDs.root");
 
   // Make the analysis manager
   AliAnalysisManager *mgr = new AliAnalysisManager("TotEtManager");
