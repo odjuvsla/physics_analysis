@@ -40,9 +40,11 @@ private:
 
     /* Neutral and charged Et */
     TH1F        *fHistEt; //Et spectrum
+    TH1F        *fHistEtAcc;
     TH1F        *fHistTotE; //E spectrum
     TH1F        *fHistMult; //Multiplicity
     TH1F        *fHistMCEt; //Et spectrum
+    TH1F        *fHistMCEtAcc;
     TH1F        *fHistMCTotE; //E spectrum
     TNtuple     *fEtNtuple; //Ntuple
     TNtuple     *fEtRecMCNtuple;
@@ -54,6 +56,7 @@ private:
     TH1F        *fHistNeutralTotE; //E spectrum
     TH1F        *fHistNeutralMult; //Multiplicity
     TH1F        *fHistMCNeutralEt; //Et spectrum
+    TH1F        *fHistMCNeutralEtAcc; //Et spectrum
     TH1F        *fHistMCNeutralTotE; //E spectrum
     TNtuple     *fNeutralEtNtuple; //Ntuple
     TNtuple     *fNeutralEtRecMCNtuple;
@@ -62,9 +65,11 @@ private:
 
     /* Charged Et */
     TH1F        *fHistChargedEt; //Et spectrum
+    TH1F        *fHistChargedEtAcc;
     TH1F        *fHistChargedTotE; //E spectrum
     TH1F        *fHistChargedMult; //Multiplicity
     TH1F        *fHistMCChargedEt; //Et spectrum
+    TH1F        *fHistMCChargedEtAcc; //Et spectrum
     TH1F        *fHistMCChargedTotE; //E spectrum
     TNtuple     *fChargedEtNtuple; //Ntuple
     TNtuple     *fChargedEtRecMCNtuple;
