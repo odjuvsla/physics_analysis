@@ -1,6 +1,7 @@
 #ifndef AliAnalysisTaskTotEt_cxx
 #define AliAnalysisTaskTotEt_cxx
 
+class TTree;
 class AliVParticle;
 class TH1F;
 class TH2F;
@@ -8,9 +9,27 @@ class TNtuple;
 class TObjArray;
 class AliESDEvent;
 class AliMCParticle;
+class TDatabasePDG;
 
 #include "AliAnalysisTaskSE.h"
-#include "Rtypes.h"
+#include "TObject.h"
+
+class ParticleVars : public TObject        // Inherit from TObject to put in TClonesArray
+    {
+       public:
+	  
+	  ParticleVars() : TObject(){}
+       Int_t fPdgCode; // from MC
+       Int_t fPid; //from ESDs
+       Int_t fMass;
+       Int_t fCharge;
+       Double_t fEt;
+       Double_t fPhi;
+       Double_t fEta;
+       
+       ClassDef(ParticleVars, 1);
+       
+    };
 
 class AliAnalysisTaskTotEt : public AliAnalysisTaskSE {
 public:
@@ -37,6 +56,10 @@ private:
     AliESDEvent *fESD;    //ESD object
 
     TList *fOutputList;
+
+    /* Trees */
+    TTree *fRecTree;
+    TTree *fSimTree;
 
     /* Neutral and charged Et */
     TH1F        *fHistEt; //Et spectrum
@@ -80,26 +103,46 @@ private:
     TH2F         *fHistPhivsPtPos; //phi vs pT plot for positive tracks
     TH2F         *fHistPhivsPtNeg; //phi vs pT plot for negative tracks
 
-   /* Correction plots */
+    /* PID plots */
+    TH1F         *fHistBaryonEt;
+    TH1F         *fHistAntiBaryonEt;
+    TH1F         *fHistMesonEt;
+
+    TH1F         *fHistBaryonEtAcc;
+    TH1F         *fHistAntiBaryonEtAcc;
+    TH1F         *fHistMesonEtAcc;
+
+    /* PID plots */
+    TH1F         *fHistMCBaryonEt;
+    TH1F         *fHistMCAntiBaryonEt;
+    TH1F         *fHistMCMesonEt;
+
+    TH1F         *fHistMCBaryonEtAcc;
+    TH1F         *fHistMCAntiBaryonEtAcc;
+    TH1F         *fHistMCMesonEtAcc;
+
+    /* Correction plots */
     TH2F          *fHistEtRecvsEtMC; //Reconstructed Et versus MC Et
-    
+
     /* Track matching plots */
     TH1F          *fHistTMDeltaR;
 
     Double_t fSumEtRec;
     Double_t fSumEtRecAcc;
     Double_t fSumEtMC;
-    
+
     Float_t fEtaCut;
     Float_t fEtaCutAcc;
     Float_t fPhiCutAccMin;
-    Float_t fPhiCutAccMax; 	
+    Float_t fPhiCutAccMax;
     Float_t fVertexXCut;
     Float_t fVertexYCut;
     Float_t fVertexZCut;
 
     Float_t fIPxyCut;
     Float_t fIPzCut;
+    
+    Float_t fClusterEnergyCut;
 
     Bool_t fTriggerSelection;
 
@@ -109,6 +152,35 @@ private:
 
     const int fkPhotonPdg;
 
+    const Float_t fkProtonMass;
+
+    TDatabasePDG *fPdgDB;
+
+    class EventVars
+    {
+       public:
+        Double_t fTotEt;
+	Double_t fTotEtAcc;
+        Double_t fTotEnergy;
+
+        Double_t fTotNeutralEt;
+	Double_t fTotNeutralEtAcc;
+
+        Double_t fTotChargedEt;
+        Double_t fTotChargedEtAcc;
+
+        Int_t fChargedMultiplicity;
+        Int_t fNeutralMultiplicity;
+
+    };
+    
+    EventVars *fRecEventVars;
+    EventVars *fSimEventVars;
+    
+    
+    TClonesArray *fRecParticleArray;
+    TClonesArray *fSimParticleArray;
+    
     ClassDef(AliAnalysisTaskTotEt, 1); // example of analysis
 };
 
