@@ -1,337 +1,281 @@
-void runLocalSim() {
-  TStopwatch timer;
-  timer.Start();
-  
-  gSystem->Load("libTree.so");
-  //____________________________________________________//
-  //_____________Setting up STEERBase.par_______________//
-  //____________________________________________________//
-  setupPar("STEERBase");
-  gSystem->Load("libSTEERBase.so");
 
-  //____________________________________________________//
-  //_____________Setting up ESD.par_____________________//
-  //____________________________________________________//
-  setupPar("ESD");
-  gSystem->Load("libVMC.so");
-  gSystem->Load("libESD.so");
-  //____________________________________________________//
-  //_____________Setting up AOD.par_____________________//
-  //____________________________________________________//
-  setupPar("AOD");
-  gSystem->Load("libAOD.so");
-                                                                
-  //_____________________________________________________________//
-  //_____________Setting up ANALYSIS_NEW.par_____________________//
-  //_____________________________________________________________//
-  setupPar("ANALYSIS");
-  gSystem->Load("libANALYSIS");
-  gSystem->Load("libANALYSISalice");
-  
-  //  gROOT->LoadMacro("../tasks/AliAnalysisTaskTotEt.cxx+");
+void runLocalSimTest() {
+    TStopwatch timer;
+    timer.Start();
 
-  gSystem->AddIncludePath("-I$ALICE_ROOT/include");
+    gSystem->Load("libANALYSIS");
+    gSystem->Load("libANALYSISalice");
 
-  gROOT->LoadMacro("AliAnalysisTaskTotEt.cxx+g");
+    gROOT->LoadMacro("AliAnalysisEt.cxx+g");
+    gROOT->LoadMacro("AliAnalysisEtReconstructed.cxx+g");
+    gROOT->LoadMacro("AliAnalysisEtMonteCarlo.cxx+g");
+    gROOT->LoadMacro("AliAnalysisEtReconstructedPhos.cxx+g");
+    gROOT->LoadMacro("AliAnalysisEtMonteCarloPhos.cxx+g");
 
-  //____________________________________________//
-  /*AliTagAnalysis *TagAna = new AliTagAnalysis("ESD"); 
-  TagAna->ChainLocalTags("../Tags");
+    gROOT->LoadMacro("AliAnalysisTaskTotEt.cxx+g");
+    //____________________________________________//
+    /*AliTagAnalysis *TagAna = new AliTagAnalysis("ESD");
+    TagAna->ChainLocalTags("../Tags");
 
-  AliRunTagCuts *runCuts = new AliRunTagCuts();
-  AliLHCTagCuts *lhcCuts = new AliLHCTagCuts();
-  AliDetectorTagCuts *detCuts = new AliDetectorTagCuts();
-  AliEventTagCuts *evCuts = new AliEventTagCuts();
-  //   evCuts->SetMultiplicityRange(11,12);  
-  evCuts->SetNPHOSClustersRange(0,10000);  
-  
-  TChain* chain = 0x0;
-  chain = TagAna->QueryTags(runCuts,lhcCuts,detCuts,evCuts);
-  *///  chain->SetBranchStatus("*Calo*",0);
+    AliRunTagCuts *runCuts = new AliRunTagCuts();
+    AliLHCTagCuts *lhcCuts = new AliLHCTagCuts();
+    AliDetectorTagCuts *detCuts = new AliDetectorTagCuts();
+    AliEventTagCuts *evCuts = new AliEventTagCuts();
+    //   evCuts->SetMultiplicityRange(11,12);
+    evCuts->SetNPHOSClustersRange(0,10000);
 
-  TChain *chain = new TChain("esdTree");
-  //chain->Add("/media/wd/data/LHC10b/10000116134019.10/AliESDs.root");
-  chain->Add("../ESDs/140012/001/AliESDs.root");
-  chain->Add("../ESDs/140012/002/AliESDs.root");
-  chain->Add("../ESDs/140012/003/AliESDs.root");
-  chain->Add("../ESDs/140012/004/AliESDs.root");
-  chain->Add("../ESDs/140012/005/AliESDs.root");
-  chain->Add("../ESDs/140012/006/AliESDs.root");
-  chain->Add("../ESDs/140012/007/AliESDs.root");
-  chain->Add("../ESDs/140012/008/AliESDs.root");
-  chain->Add("../ESDs/140012/009/AliESDs.root");
-  chain->Add("../ESDs/140012/010/AliESDs.root");
-  chain->Add("../ESDs/140012/011/AliESDs.root");
+    TChain* chain = 0x0;
+    chain = TagAna->QueryTags(runCuts,lhcCuts,detCuts,evCuts);
+    *///  chain->SetBranchStatus("*Calo*",0);
 
-chain->Add("/media/wd/data/LHC10a/140009/088/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/081/AliESDs.root");
+    TChain *chain = new TChain("esdTree");
+    //chain->Add("/media/wd/data/LHC10b/10000116134019.10/AliESDs.root");
+//   chain->Add("../ESDs/140012/001/AliESDs.root");
+//   chain->Add("../ESDs/140012/002/AliESDs.root");
+//   chain->Add("../ESDs/140012/003/AliESDs.root");
+//   chain->Add("../ESDs/140012/004/AliESDs.root");
+//   chain->Add("../ESDs/140012/005/AliESDs.root");
+//   chain->Add("../ESDs/140012/006/AliESDs.root");
+//   chain->Add("../ESDs/140012/007/AliESDs.root");
+//   chain->Add("../ESDs/140012/008/AliESDs.root");
+//   chain->Add("../ESDs/140012/009/AliESDs.root");
+//   chain->Add("../ESDs/140012/010/AliESDs.root");
+//   chain->Add("../ESDs/140012/011/AliESDs.root");
+
+    chain->Add("/media/wd/data/LHC10a/140009/088/AliESDs.root");
+   chain->Add("/media/wd/data/LHC10a/140009/081/AliESDs.root");
 chain->Add("/media/wd/data/LHC10a/140009/065/AliESDs.root");
 chain->Add("/media/wd/data/LHC10a/140009/050/AliESDs.root");
 chain->Add("/media/wd/data/LHC10a/140009/010/AliESDs.root");
 chain->Add("/media/wd/data/LHC10a/140009/013/AliESDs.root");
 chain->Add("/media/wd/data/LHC10a/140009/025/AliESDs.root");
 chain->Add("/media/wd/data/LHC10a/140009/021/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/072/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/011/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/092/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/043/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/002/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/008/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/059/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/107/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/017/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/085/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/103/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/091/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/034/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/084/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/071/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/079/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/087/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/067/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/028/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/068/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/051/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/020/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/102/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/066/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/063/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/047/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/105/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/040/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/053/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/083/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/069/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/016/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/006/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/039/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/077/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/100/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/003/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/052/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/009/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/026/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/062/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/095/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/070/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/106/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/027/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/054/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/073/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/022/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/044/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/012/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/056/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/031/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/086/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/023/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/075/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/093/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/005/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/035/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/057/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/019/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/042/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/046/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/048/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/024/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/018/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/014/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/064/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/032/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/104/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/029/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/082/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/108/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/074/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/041/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/058/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/089/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/080/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/101/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/055/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/098/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/096/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/038/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/1000/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/033/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/094/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/004/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/060/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/076/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/078/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/061/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/090/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/097/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140009/099/AliESDs.root");
+   chain->Add("/media/wd/data/LHC10a/140009/072/AliESDs.root");
+    chain->Add("/media/wd/data/LHC10a/140009/011/AliESDs.root");
+    chain->Add("/media/wd/data/LHC10a/140009/092/AliESDs.root");
+    chain->Add("/media/wd/data/LHC10a/140009/043/AliESDs.root");
+    chain->Add("/media/wd/data/LHC10a/140009/002/AliESDs.root");
+    chain->Add("/media/wd/data/LHC10a/140009/008/AliESDs.root");
+    chain->Add("/media/wd/data/LHC10a/140009/059/AliESDs.root");
+    chain->Add("/media/wd/data/LHC10a/140009/107/AliESDs.root");
+    chain->Add("/media/wd/data/LHC10a/140009/017/AliESDs.root");
+    chain->Add("/media/wd/data/LHC10a/140009/085/AliESDs.root");
+    chain->Add("/media/wd/data/LHC10a/140009/103/AliESDs.root");
+    chain->Add("/media/wd/data/LHC10a/140009/091/AliESDs.root");
+    chain->Add("/media/wd/data/LHC10a/140009/034/AliESDs.root");
+    chain->Add("/media/wd/data/LHC10a/140009/084/AliESDs.root");
+    chain->Add("/media/wd/data/LHC10a/140009/071/AliESDs.root");
+    chain->Add("/media/wd/data/LHC10a/140009/079/AliESDs.root");
+    chain->Add("/media/wd/data/LHC10a/140009/087/AliESDs.root");
+    chain->Add("/media/wd/data/LHC10a/140009/067/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/028/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/068/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/051/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/020/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/102/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/066/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/063/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/047/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/105/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/040/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/053/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/083/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/069/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/016/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/006/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/039/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/077/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/100/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/003/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/052/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/009/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/026/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/062/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/095/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/070/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/106/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/027/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/054/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/073/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/022/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/044/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/012/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/056/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/031/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/086/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/023/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/075/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/093/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/005/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/035/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/057/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/019/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/042/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/046/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/048/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/024/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/018/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/014/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/064/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/032/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/104/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/029/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/082/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/108/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/074/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/041/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/058/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/089/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/080/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/101/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/055/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/098/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/096/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/038/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/1000/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/033/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/094/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/004/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/060/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/076/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/078/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/061/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/090/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/097/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140009/099/AliESDs.root");
+//
+//   chain->Add("/media/wd/data/LHC10a/140010/081/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/065/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/050/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/010/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/013/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/025/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/021/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/072/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/011/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/092/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/043/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/002/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/001/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/015/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/008/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/059/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/017/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/045/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/103/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/091/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/034/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/084/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/071/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/079/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/087/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/067/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/028/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/068/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/051/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/020/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/102/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/066/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/063/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/047/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/105/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/040/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/053/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/083/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/069/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/016/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/006/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/039/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/077/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/100/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/036/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/003/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/052/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/007/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/009/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/026/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/062/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/030/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/095/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/070/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/027/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/054/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/073/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/022/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/044/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/012/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/056/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/031/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/086/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/023/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/075/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/093/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/005/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/035/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/057/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/019/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/042/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/046/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/048/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/024/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/018/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/014/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/064/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/032/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/104/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/029/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/082/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/058/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/089/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/080/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/101/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/055/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/098/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/096/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/038/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/1000/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/033/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/094/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/004/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/060/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/076/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/078/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/061/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/090/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/037/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/097/AliESDs.root");
+// chain->Add("/media/wd/data/LHC10a/140010/099/AliESDs.root");
 
-  chain->Add("/media/wd/data/LHC10a/140010/081/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/065/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/050/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/010/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/013/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/025/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/021/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/072/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/011/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/092/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/043/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/002/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/001/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/015/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/008/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/059/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/017/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/045/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/103/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/091/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/034/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/084/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/071/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/079/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/087/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/067/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/028/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/068/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/051/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/020/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/102/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/066/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/063/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/047/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/105/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/040/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/053/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/083/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/069/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/016/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/006/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/039/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/077/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/100/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/036/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/003/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/052/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/007/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/009/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/026/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/062/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/030/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/095/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/070/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/027/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/054/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/073/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/022/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/044/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/012/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/056/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/031/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/086/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/023/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/075/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/093/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/005/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/035/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/057/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/019/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/042/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/046/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/048/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/024/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/018/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/014/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/064/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/032/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/104/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/029/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/082/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/058/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/089/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/080/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/101/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/055/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/098/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/096/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/038/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/1000/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/033/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/094/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/004/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/060/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/076/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/078/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/061/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/090/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/037/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/097/AliESDs.root");
-chain->Add("/media/wd/data/LHC10a/140010/099/AliESDs.root");
 
 
-  
-  
-  // Make the analysis manager
-  AliAnalysisManager *mgr = new AliAnalysisManager("TotEtManager");
-  AliVEventHandler* esdH = new AliESDInputHandler;
-  mgr->SetInputEventHandler(esdH);  
+
+    // Make the analysis manager
+    AliAnalysisManager *mgr = new AliAnalysisManager("TotEtManager");
+    AliVEventHandler* esdH = new AliESDInputHandler;
+    mgr->SetInputEventHandler(esdH);
     AliMCEventHandler* handler = new AliMCEventHandler;
-  handler->SetReadTR(kFALSE);
-  mgr->SetMCtruthEventHandler(handler);
-  
-  AliAnalysisTaskTotEt *task1 = new AliAnalysisTaskTotEt("TaskTotEt");
-  mgr->AddTask(task1);
- 
-  // Create containers for input/output
-  //AliAnalysisDataContainer *cinput1 = mgr->CreateContainer("cchain1", TChain::Class(),AliAnalysisManager::kInputContainer);
-   AliAnalysisDataContainer *cinput1 = mgr->GetCommonInputContainer();
-   
-  AliAnalysisDataContainer *coutput1 = mgr->CreateContainer("out1", TList::Class(), AliAnalysisManager::kOutputContainer,"Et.ESD.sim.root");
+    handler->SetReadTR(kFALSE);
+    mgr->SetMCtruthEventHandler(handler);
 
-  //____________________________________________//
-  mgr->ConnectInput(task1,0,cinput1);
-  mgr->ConnectOutput(task1,1,coutput1);
+    AliAnalysisTaskTotEt *task1 = new AliAnalysisTaskTotEt("TaskTotEt");
+    mgr->AddTask(task1);
 
-  mgr->SetDebugLevel(1);
+    // Create containers for input/output
+    //AliAnalysisDataContainer *cinput1 = mgr->CreateContainer("cchain1", TChain::Class(),AliAnalysisManager::kInputContainer);
+    AliAnalysisDataContainer *cinput1 = mgr->GetCommonInputContainer();
 
-  if (!mgr->InitAnalysis()) return;
-  mgr->PrintStatus();
-  mgr->StartAnalysis("local",chain);
+    AliAnalysisDataContainer *coutput1 = mgr->CreateContainer("out1", TList::Class(), AliAnalysisManager::kOutputContainer,"Et.ESD.sim.root");
 
-  timer.Stop();
-  timer.Print();
-}
+    //____________________________________________//
+    mgr->ConnectInput(task1,0,cinput1);
+    mgr->ConnectOutput(task1,1,coutput1);
 
-Int_t setupPar(const char* pararchivename) {
-  ///////////////////
-  // Setup PAR File//
-  ///////////////////
-  if (pararchivename) {
-    char processline[1024];
-    sprintf(processline,".! tar xvzf %s.par",pararchivename);
-    gROOT->ProcessLine(processline);
-    const char* ocwd = gSystem->WorkingDirectory();
-    gSystem->ChangeDirectory(pararchivename);
-                                                                                                                                               
-    // check for BUILD.sh and execute
-    if (!gSystem->AccessPathName("PROOF-INF/BUILD.sh")) {
-      printf("*******************************\n");
-      printf("*** Building PAR archive    ***\n");
-      printf("*******************************\n");
-                                                                                                                                               
-      if (gSystem->Exec("PROOF-INF/BUILD.sh")) {
-        Error("runAnalysis","Cannot Build the PAR Archive! - Abort!");
-        return -1;
-      }
-    }
-    // check for SETUP.C and execute
-    if (!gSystem->AccessPathName("PROOF-INF/SETUP.C")) {
-      printf("*******************************\n");
-      printf("*** Setup PAR archive       ***\n");
-      printf("*******************************\n");
-      gROOT->Macro("PROOF-INF/SETUP.C");
-    }
-                                                                                                                                               
-    gSystem->ChangeDirectory("../");
-  }                                                                                                                                               
-  return 1;
+    mgr->SetDebugLevel(1);
+
+    if (!mgr->InitAnalysis()) return;
+    mgr->PrintStatus();
+    mgr->StartAnalysis("local",chain);
+
+    timer.Stop();
+    timer.Print();
 }
