@@ -7,23 +7,23 @@
 #include "AliVEvent.h"
 #include "AliESDEvent.h"
 #include "AliVParticle.h"
+#include <iostream>
+#include "TH2F.h"
 
 AliAnalysisEtReconstructed::AliAnalysisEtReconstructed() :
-AliAnalysisEt()
-,fNTpcClustersCut(EtReconstructedCuts::kNTpcClustersCut)
-,fNItsClustersCut(EtReconstructedCuts::knItsClustersCut)
+        AliAnalysisEt()
+        ,fNTpcClustersCut(EtReconstructedCuts::kNTpcClustersCut)
+        ,fNItsClustersCut(EtReconstructedCuts::knItsClustersCut)
+        ,fClusterType(0)
+        ,fTrackDistanceCut(0)
 {
 
 }
 
 Int_t AliAnalysisEtReconstructed::AnalyseEvent(AliVEvent* ev)
 {
-    
-   AliESDEvent *event = dynamic_cast<AliESDEvent*>(ev);
-    
-    Int_t chargedMultiplicity = 0;
-
-    Int_t nparticles = 0;
+    ResetEventValues();
+    AliESDEvent *event = dynamic_cast<AliESDEvent*>(ev);
 
     for (Int_t iTrack = 0; iTrack < event->GetNumberOfTracks(); iTrack++)
     {
@@ -34,7 +34,7 @@ Int_t AliAnalysisEtReconstructed::AnalyseEvent(AliVEvent* ev)
             continue;
         }
 
-        nparticles++;
+        fMultiplicity++;
 
         Int_t nItsClusters = dynamic_cast<AliESDtrack*>(track)->GetNcls(0);
         Int_t nTPCClusters = dynamic_cast<AliESDtrack*>(track)->GetNcls(1);
@@ -66,7 +66,7 @@ Int_t AliAnalysisEtReconstructed::AnalyseEvent(AliVEvent* ev)
         if (TMath::Abs(track->Eta()) < fEtaCut && CheckGoodVertex(track) && nItsClusters > fNItsClustersCut && nTPCClusters > fNTpcClustersCut)
         {
             fTotChargedEt +=  track->E() * TMath::Sin(track->Theta()) + massPart;
-            chargedMultiplicity++;
+            fChargedMultiplicity++;
 
             if (TMath::Abs(track->Eta()) < fEtaCutAcc && track->Phi() < fPhiCutAccMax && track->Phi() > fPhiCutAccMin)
             {
@@ -78,12 +78,10 @@ Int_t AliAnalysisEtReconstructed::AnalyseEvent(AliVEvent* ev)
         Double_t pt = track->Pt();
         if (TrackHitsCalorimeter(track, event->GetMagneticField()))
         {
-            //if (track->Charge() > 0) fHistPhivsPtPos->Fill(phi,pt);
-//            else fHistPhivsPtNeg->Fill(phi, pt);
+            if (track->Charge() > 0) fHistPhivsPtPos->Fill(phi,pt);
+            else fHistPhivsPtNeg->Fill(phi, pt);
         }
     }
-
-    Int_t neutralMultiplicity = 0;
 
     for (Int_t iCluster = 0; iCluster < event->GetNumberOfCaloClusters(); iCluster++)
     {
@@ -94,15 +92,16 @@ Int_t AliAnalysisEtReconstructed::AnalyseEvent(AliVEvent* ev)
             continue;
         }
 
-        if (!cluster->IsPHOS()) continue;
+        if (cluster->GetClusterType() != fClusterType) continue;
+
         if (cluster->E() < fClusterEnergyCut) continue;
         Float_t pos[3];
         TVector3 cp(pos);
         cluster->GetPosition(pos);
-        if (pos[0] < -(32.0*2.2)) continue; //Ensure that modules 0 and 1 are not used
+        //if (pos[0] < -(32.0*2.2)) continue; //Ensure that modules 0 and 1 are not used
         // if(cp.Phi() < 260.*TMath::Pi()/180.) continue;
-//        fHistTMDeltaR->Fill(cluster->GetEmcCpvDistance());
-        if (cluster->GetEmcCpvDistance() < 15.0)
+        fHistTMDeltaR->Fill(cluster->GetEmcCpvDistance());
+        if (cluster->GetEmcCpvDistance() < fTrackDistanceCut)
         {
             continue;
             //AliVParticle *matchedTrack = event->GetTrack(cluster->GetTrackMatched());
@@ -113,20 +112,29 @@ Int_t AliAnalysisEtReconstructed::AnalyseEvent(AliVEvent* ev)
 // 	    }
         }
 
-        if (cluster->E() >  0.5 && cluster->GetNCells() == 1) continue;
+        if (cluster->E() >  fSingleCellEnergyCut && cluster->GetNCells() == EtCommonCuts::kSingleCell) continue;
 
-	cluster->GetPosition(pos);
+        cluster->GetPosition(pos);
+      
+	// TODO: replace with TVector3, too lazy now...
 
         float dist = TMath::Sqrt(pos[0]*pos[0] + pos[1]*pos[1]);
 
         float eta = TMath::Log(TMath::Abs( TMath::Tan( 0.5 * (TMath::ATan(pos[2]/dist) + TMath::Pi()/2) ) ) );
         float theta = TMath::ATan(pos[2]/dist)+TMath::Pi()/2;
         fTotNeutralEt += cluster->E() * TMath::Sin(theta);
-        neutralMultiplicity++;
 
-	nparticles++;
+        fMultiplicity++;
 
     }
+
+    fTotNeutralEtAcc = fTotNeutralEt;
+    fTotEt = fTotChargedEt + fTotNeutralEt;
+    fTotEtAcc = fTotChargedEtAcc + fTotNeutralEtAcc;
+
+    std::cout << fTotChargedEtAcc << std::endl;
+    // Fill the histograms...
+    FillHistograms();
 }
 
 bool AliAnalysisEtReconstructed::CheckGoodVertex(AliVParticle* track)
@@ -140,14 +148,17 @@ bool AliAnalysisEtReconstructed::CheckGoodVertex(AliVParticle* track)
 
 }
 
-// bool AliAnalysisEtReconstructed::TrackHitsPHOS(AliVParticle* track, Double_t magField)
-// {
-//     AliESDtrack *esdTrack = dynamic_cast<AliESDtrack*>(track);
-//     // Printf("Propagating track: eta: %f, phi: %f, pt: %f", esdTrack->Eta(), esdTrack->Phi(), esdTrack->Pt());
-// 
-//     Bool_t prop = esdTrack->PropagateTo(460.0, magField);
-// 
-//     //if(prop)Printf("Track propagated, eta: %f, phi: %f, pt: %f", esdTrack->Eta(), esdTrack->Phi(), esdTrack->Pt());
-//     return prop&& TMath::Abs(esdTrack->Eta()) < 0.12 && esdTrack->Phi() > 260.*TMath::Pi()/180. && esdTrack->Phi() < 320.*TMath::Pi()/180.;
-// 
-// }
+void AliAnalysisEtReconstructed::Init()
+{
+
+    AliAnalysisEt::Init();
+
+    fVertexXCut = EtReconstructedCuts::kVertexXCut;
+    fVertexYCut = EtReconstructedCuts::kVertexYCut;
+    fVertexZCut = EtReconstructedCuts::kVertexZCut;
+    fIPxyCut = EtReconstructedCuts::kIPxyCut;
+    fIPzCut = EtReconstructedCuts::kIPzCut;
+
+}
+
+

@@ -8,7 +8,12 @@ class AliAnalysisEtMonteCarlo : public AliAnalysisEt
 {
 
 public:
+   
+    AliAnalysisEtMonteCarlo() {}
+   
     virtual Int_t AnalyseEvent(AliVEvent* event);
+
+    virtual void Init();
     
 };
 

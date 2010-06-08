@@ -1,6 +1,7 @@
 #ifndef AliAnalysisTaskTotEt_cxx
 #define AliAnalysisTaskTotEt_cxx
 
+class AliAnalysisEt;
 class TTree;
 class AliVParticle;
 class TH1F;
@@ -57,98 +58,17 @@ private:
 
     TList *fOutputList;
 
-    /* Trees */
-    TTree *fRecTree;
-    TTree *fSimTree;
+    AliAnalysisEt *fPhosRecAnalysis;
+    AliAnalysisEt *fPhosMCAnalysis;
 
-    /* Neutral and charged Et */
-    TH1F        *fHistEt; //Et spectrum
-    TH1F        *fHistEtAcc;
-    TH1F        *fHistTotE; //E spectrum
-    TH1F        *fHistMult; //Multiplicity
-    TH1F        *fHistMCEt; //Et spectrum
-    TH1F        *fHistMCEtAcc;
-    TH1F        *fHistMCTotE; //E spectrum
-    TNtuple     *fEtNtuple; //Ntuple
-    TNtuple     *fEtRecMCNtuple;
-    TNtuple     *fEtRecGeomNtuple;
-    TNtuple     *fEtMCGeomNtuple;
-
-    /* Neutral Et */
-    TH1F        *fHistNeutralEt; //Et spectrum
-    TH1F        *fHistNeutralTotE; //E spectrum
-    TH1F        *fHistNeutralMult; //Multiplicity
-    TH1F        *fHistMCNeutralEt; //Et spectrum
-    TH1F        *fHistMCNeutralEtAcc; //Et spectrum
-    TH1F        *fHistMCNeutralTotE; //E spectrum
-    TNtuple     *fNeutralEtNtuple; //Ntuple
-    TNtuple     *fNeutralEtRecMCNtuple;
-    TNtuple     *fNeutralEtRecGeomNtuple;
-    TNtuple     *fNeutralEtMCGeomNtuple;
-
-    /* Charged Et */
-    TH1F        *fHistChargedEt; //Et spectrum
-    TH1F        *fHistChargedEtAcc;
-    TH1F        *fHistChargedTotE; //E spectrum
-    TH1F        *fHistChargedMult; //Multiplicity
-    TH1F        *fHistMCChargedEt; //Et spectrum
-    TH1F        *fHistMCChargedEtAcc; //Et spectrum
-    TH1F        *fHistMCChargedTotE; //E spectrum
-    TNtuple     *fChargedEtNtuple; //Ntuple
-    TNtuple     *fChargedEtRecMCNtuple;
-    TNtuple     *fChargedEtRecGeomNtuple;
-    TNtuple     *fChargedEtMCGeomNtuple;
-
-    /* Acceptance plots */
-    TH2F         *fHistPhivsPtPos; //phi vs pT plot for positive tracks
-    TH2F         *fHistPhivsPtNeg; //phi vs pT plot for negative tracks
-
-    /* PID plots */
-    TH1F         *fHistBaryonEt;
-    TH1F         *fHistAntiBaryonEt;
-    TH1F         *fHistMesonEt;
-
-    TH1F         *fHistBaryonEtAcc;
-    TH1F         *fHistAntiBaryonEtAcc;
-    TH1F         *fHistMesonEtAcc;
-
-    /* PID plots */
-    TH1F         *fHistMCBaryonEt;
-    TH1F         *fHistMCAntiBaryonEt;
-    TH1F         *fHistMCMesonEt;
-
-    TH1F         *fHistMCBaryonEtAcc;
-    TH1F         *fHistMCAntiBaryonEtAcc;
-    TH1F         *fHistMCMesonEtAcc;
-
-    /* Correction plots */
-    TH2F          *fHistEtRecvsEtMC; //Reconstructed Et versus MC Et
-
-    /* Track matching plots */
-    TH1F          *fHistTMDeltaR;
-
-    Double_t fSumEtRec;
-    Double_t fSumEtRecAcc;
-    Double_t fSumEtMC;
-
-    Float_t fEtaCut;
-    Float_t fEtaCutAcc;
-    Float_t fPhiCutAccMin;
-    Float_t fPhiCutAccMax;
-    Float_t fVertexXCut;
-    Float_t fVertexYCut;
-    Float_t fVertexZCut;
-
-    Float_t fIPxyCut;
-    Float_t fIPzCut;
+    TH2F *fHistEtRecvsEtMC;
     
-    Float_t fClusterEnergyCut;
+    Int_t fCount;
 
     Bool_t fTriggerSelection;
-
-    Int_t fCount;
-    AliAnalysisTaskTotEt(const AliAnalysisTaskTotEt&); // not implemented
-    AliAnalysisTaskTotEt& operator=(const AliAnalysisTaskTotEt&); // not implemented
+    
+    //AliAnalysisTaskTotEt(const AliAnalysisTaskTotEt&); // not implemented
+    //AliAnalysisTaskTotEt& operator=(const AliAnalysisTaskTotEt&); // not implemented
 
     const int fkPhotonPdg;
 
