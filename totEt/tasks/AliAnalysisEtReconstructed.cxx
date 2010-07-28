@@ -56,7 +56,7 @@ Int_t AliAnalysisEtReconstructed::AnalyseEvent(AliVEvent* ev)
             }
             if (maxpid == AliPID::kProton)
             {
-                //     massPart = -0.938*track->Charge();
+                massPart = -0.938*track->Charge();
             }
 
         }
