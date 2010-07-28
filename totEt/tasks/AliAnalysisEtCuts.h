@@ -47,7 +47,7 @@ namespace EtReconstructedCutsPhos
 {
    const Char_t kClusterType = -1;
    
-   const Double_t kClusterEnergyCut = 0.0;
+   const Double_t kClusterEnergyCut = 0.1;
    const Double_t kSingleCellEnergyCut = 0.5;
    
    const Double_t kTrackDistanceCut = 15.0;
