@@ -24,7 +24,9 @@
 #include "TDatabasePDG.h"
 #include "AliAnalysisTaskTotEt.h"
 #include "AliAnalysisEtReconstructedPhos.h"
+//#include "AliAnalysisEtReconstructedEmcal.h"
 #include "AliAnalysisEtMonteCarloPhos.h"
+//#include "AliAnalysisEtMonteCarloEmcal.h"
 
 #include <iostream>
 #include "AliStack.h"
@@ -38,8 +40,8 @@ AliAnalysisTaskTotEt::AliAnalysisTaskTotEt(const char *name) :
         AliAnalysisTaskSE(name)
         ,fESD(0)
         ,fOutputList(0)
-        ,fPhosRecAnalysis(0)
-        ,fPhosMCAnalysis(0)
+        ,fRecAnalysis(0)
+        ,fMCAnalysis(0)
         ,fHistEtRecvsEtMC(0)
         ,fTriggerSelection(false)
         ,fCount(0)
@@ -53,10 +55,21 @@ AliAnalysisTaskTotEt::AliAnalysisTaskTotEt(const char *name) :
 {
     // Constructor
 
-    fPhosRecAnalysis = new AliAnalysisEtReconstructedPhos();
-    fPhosRecAnalysis->Init();
-    fPhosMCAnalysis = new AliAnalysisEtMonteCarloPhos();
-    fPhosMCAnalysis->Init();
+    // select if we should use EMCal or PHOS class
+    // PHOS by default, EMCal if name string contains EMC
+    TString t(name);
+    t.ToUpper();
+    if (t.Contains("EMC")) {
+  //    fRecAnalysis = new AliAnalysisEtReconstructedEmcal(); 
+      //fMCAnalysis = new AliAnalysisEtMonteCarloEmcal();
+    }
+    else {
+      fRecAnalysis = new AliAnalysisEtReconstructedPhos(); 
+      fMCAnalysis = new AliAnalysisEtMonteCarloPhos();
+    }
+
+    fRecAnalysis->Init();
+    fMCAnalysis->Init();
 
     fPdgDB = new TDatabasePDG();
 
@@ -76,11 +89,11 @@ void AliAnalysisTaskTotEt::UserCreateOutputObjects()
 {
     // Create histograms
     // Called once
-    fPhosMCAnalysis->CreateHistograms();
-    fPhosRecAnalysis->CreateHistograms();
+    fMCAnalysis->CreateHistograms();
+    fRecAnalysis->CreateHistograms();
     fOutputList = new TList;
-    fPhosRecAnalysis->FillOutputList(fOutputList);
-    fPhosMCAnalysis->FillOutputList(fOutputList);
+    fRecAnalysis->FillOutputList(fOutputList);
+    fMCAnalysis->FillOutputList(fOutputList);
     fHistEtRecvsEtMC = new TH2F("fHistEtRecvsEtMC", "Reconstructed E_{t} vs MC E_{t}", 1000, 0.000, 100, 1000, 0.0001, 100);
     fOutputList->Add(fHistEtRecvsEtMC);
 }
@@ -94,17 +107,18 @@ void AliAnalysisTaskTotEt::UserExec(Option_t *)
         return;
     }
 
-    fPhosRecAnalysis->AnalyseEvent(event);
+    fRecAnalysis->AnalyseEvent(event);
 
     AliMCEvent* mcEvent = MCEvent();
     if (mcEvent)
     {
-        fPhosMCAnalysis->AnalyseEvent(mcEvent);
+        fMCAnalysis->AnalyseEvent(mcEvent);
     }
 
-    fHistEtRecvsEtMC->Fill(fPhosRecAnalysis->GetTotEtAcc(), fPhosMCAnalysis->GetTotEt());
+    fHistEtRecvsEtMC->Fill(fRecAnalysis->GetTotEtAcc(), fMCAnalysis->GetTotEt());
 
 // Post output data.
+   Printf("Posting data");
     PostData(1, fOutputList);
 
 }

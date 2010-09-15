@@ -36,37 +36,40 @@ class AliAnalysisTaskTotEt : public AliAnalysisTaskSE {
 public:
     AliAnalysisTaskTotEt(const char *name = "AliAnalysisTaskTotEt");
     virtual ~AliAnalysisTaskTotEt() {}
-
+    AliAnalysisTaskTotEt() {};
     //  virtual void   ConnectInputData(Option_t *);
     virtual void   UserCreateOutputObjects();
     virtual void   UserExec(Option_t *option);
     virtual void   Terminate(Option_t *);
 
     virtual void SetTriggerSelection(Bool_t v) {
-        fTriggerSelection = true;
+        fTriggerSelection = v;
     }
 
+    /* // Not yet implemented methods commented out for now..
 private:
 
     Float_t CorrectForCaloAcceptance(Float_t energy);
     bool CheckGoodVertex(AliVParticle *track);
-    bool TrackHitsPHOS(AliVParticle *track, Double_t magField);
-    bool ParticleInPHOS(AliMCParticle *part);
-    bool ParticleInEMCAL(AliMCParticle *part);
+    bool TrackHitsCalorimeter(AliVParticle *track, Double_t magField);
+    bool ParticleInCalorimeter(AliMCParticle *part);
+    */
+
+private:
 
     AliESDEvent *fESD;    //ESD object
 
     TList *fOutputList;
 
-    AliAnalysisEt *fPhosRecAnalysis;
-    AliAnalysisEt *fPhosMCAnalysis;
+    AliAnalysisEt *fRecAnalysis;
+    AliAnalysisEt *fMCAnalysis;
 
     TH2F *fHistEtRecvsEtMC;
     
-    Int_t fCount;
-
     Bool_t fTriggerSelection;
     
+    Int_t fCount;
+
     //AliAnalysisTaskTotEt(const AliAnalysisTaskTotEt&); // not implemented
     //AliAnalysisTaskTotEt& operator=(const AliAnalysisTaskTotEt&); // not implemented
 

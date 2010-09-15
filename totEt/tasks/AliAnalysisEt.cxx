@@ -5,6 +5,7 @@
 #include "TH2F.h"
 #include <iostream>
 #include "AliAnalysisEtCuts.h"
+
 ClassImp(AliAnalysisEt);
 
 
@@ -22,10 +23,25 @@ AliAnalysisEt::AliAnalysisEt() :
         ,fMultiplicity(0)
         ,fChargedMultiplicity(0)
         ,fNeutralMultiplicity(0)
+        ,fBaryonEt(0)
+        ,fAntiBaryonEt(0)
+        ,fMesonEt(0)
+        ,fBaryonEtAcc(0)
+        ,fAntiBaryonEtAcc(0)
+        ,fMesonEtAcc(0)
+        ,fProtonEt(0)
+        ,fChargedKaonEt(0)
+        ,fMuonEt(0)
+        ,fElectronEt(0)
+        ,fProtonEtAcc(0)
+        ,fChargedKaonEtAcc(0)
+        ,fMuonEtAcc(0)
+        ,fElectronEtAcc(0)
         ,fEtaCut(EtCommonCuts::kEtaCut)
         ,fEtaCutAcc(0)
         ,fPhiCutAccMin(0)
         ,fPhiCutAccMax(360.)
+        ,fDetectorRadius(460.)
         ,fVertexXCut(0)
         ,fVertexYCut(0)
         ,fVertexZCut(0)
@@ -51,6 +67,14 @@ AliAnalysisEt::AliAnalysisEt() :
         ,fHistBaryonEtAcc(0)
         ,fHistAntiBaryonEtAcc(0)
         ,fHistMesonEtAcc(0)
+        ,fHistProtonEt(0)
+        ,fHistChargedKaonEt(0)
+        ,fHistMuonEt(0)
+        ,fHistElectronEt(0)
+        ,fHistProtonEtAcc(0)
+        ,fHistChargedKaonEtAcc(0)
+        ,fHistMuonEtAcc(0)
+        ,fHistElectronEtAcc(0)
         ,fHistEtRecvsEtMC(0)
         ,fHistTMDeltaR(0)
 {
@@ -82,10 +106,18 @@ void AliAnalysisEt::FillOutputList(TList *list)
     list->Add(fHistBaryonEt);
     list->Add(fHistAntiBaryonEt);
     list->Add(fHistMesonEt);
+    list->Add(fHistProtonEt);
+    list->Add(fHistChargedKaonEt);
+    list->Add(fHistMuonEt);
+    list->Add(fHistElectronEt);
 
     list->Add(fHistBaryonEtAcc);
     list->Add(fHistAntiBaryonEtAcc);
     list->Add(fHistMesonEtAcc);
+    list->Add(fHistProtonEtAcc);
+    list->Add(fHistChargedKaonEtAcc);
+    list->Add(fHistMuonEtAcc);
+    list->Add(fHistElectronEtAcc);
 
     list->Add(fHistEtRecvsEtMC);
 
@@ -130,7 +162,7 @@ void AliAnalysisEt::CreateHistograms()
     fHistNeutralEtAcc = new TH1F(histname.Data(), "Total Neutral E_{T} Distribution in Acceptance", 1000, 0.00, 99);
     fHistNeutralEtAcc->GetXaxis()->SetTitle("E_{T} (GeV/c^{2})");
     fHistNeutralEtAcc->GetYaxis()->SetTitle("dN/dE_{T} (c^{2}/GeV)");
-    std::cout << histname << std::endl;
+
     histname = "fHistMult" + fHistogramNameSuffix;
     fHistMult = new TH1F(histname.Data(), "Total Multiplicity", 200, 0, 199);
     fHistMult->GetXaxis()->SetTitle("N");
@@ -162,13 +194,37 @@ void AliAnalysisEt::CreateHistograms()
     fHistMesonEt = new TH1F(histname.Data(), "E_{T} for mesons",  1000, 0.0001, 100);
 
     histname = "fHistBaryonEtAcc" + fHistogramNameSuffix;
-    fHistBaryonEtAcc = new TH1F(histname.Data(), "E_{T} for baryons in calorimeter acceptance",  1000, 0.0001, 100);
+    fHistBaryonEtAcc = new TH1F(histname.Data(), "E_{T} for baryons in calorimeter acceptance",  1000, 0.0, 100);
 
     histname = "fHistAntiBaryonEtAcc" + fHistogramNameSuffix;
-    fHistAntiBaryonEtAcc = new TH1F(histname.Data(), "E_{T} for anti baryons in calorimeter acceptance",  1000, 0.0001, 100);
+    fHistAntiBaryonEtAcc = new TH1F(histname.Data(), "E_{T} for anti baryons in calorimeter acceptance",  1000, 0.0, 100);
 
     histname = "fHistMesonEtAcc" + fHistogramNameSuffix;
-    fHistMesonEtAcc = new TH1F(histname.Data(), "E_{T} for mesons in calorimeter acceptance",  1000, 0.0001, 100);
+    fHistMesonEtAcc = new TH1F(histname.Data(), "E_{T} for mesons in calorimeter acceptance",  1000, 0.0, 100);
+
+    histname = "fHistProtonEt" + fHistogramNameSuffix;
+    fHistProtonEt = new TH1F(histname.Data(), "E_{T} for (anti-)protons", 1000, 0.0, 100);
+
+    histname = "fHistKaonEt" + fHistogramNameSuffix;
+    fHistChargedKaonEt = new TH1F(histname.Data(), "E_{T} for charged kaons", 1000, 0.0, 100);
+
+    histname = "fHistMuonEt" + fHistogramNameSuffix;
+    fHistMuonEt = new TH1F(histname.Data(), "E_{T} for muons", 1000, 0, 100);
+
+    histname = "fHistElectronEt" + fHistogramNameSuffix;
+    fHistElectronEt = new TH1F(histname.Data(), "E_{T} for electrons/positrons", 1000, 0, 100);
+
+    histname = "fHistProtonEtAcc" + fHistogramNameSuffix;
+    fHistProtonEtAcc = new TH1F(histname.Data(), "E_{T} for (anti-)protons in calorimeter acceptance", 1000, 0.0, 100);
+
+    histname = "fHistKaonEtAcc" + fHistogramNameSuffix;
+    fHistChargedKaonEtAcc = new TH1F(histname.Data(), "E_{T} for charged kaons in calorimeter acceptance", 1000, 0.0, 100);
+
+    histname = "fHistMuonEtAcc" + fHistogramNameSuffix;
+    fHistMuonEtAcc = new TH1F(histname.Data(), "E_{T} for muons in calorimeter acceptance", 1000, 0, 100);
+
+    histname = "fHistElectronEtAcc" + fHistogramNameSuffix;
+    fHistElectronEtAcc = new TH1F(histname.Data(), "E_{T} for electrons/positrons in calorimeter acceptance", 1000, 0, 100);
 
     histname = "fHistEtRecvsEtMC" + fHistogramNameSuffix;
     fHistEtRecvsEtMC = new TH2F(histname.Data(), "Reconstructed E_{t} vs MC E_{t}", 1000, 0.000, 100, 1000, 0.0001, 100);
@@ -192,8 +248,7 @@ void AliAnalysisEt::FillHistograms()
     fHistChargedMult->Fill(fChargedMultiplicity);
     fHistNeutralMult->Fill(fNeutralMultiplicity);
 
-    fHistPhivsPtPos;
-    fHistPhivsPtNeg;
+    /* // DS commented out non-fills to prevent compilation warnings
 
     fHistBaryonEt;
     fHistAntiBaryonEt;
@@ -204,6 +259,19 @@ void AliAnalysisEt::FillHistograms()
     fHistMesonEtAcc;
 
     fHistTMDeltaR;
+    
+    */
+    
+    fHistProtonEt->Fill(fProtonEt);
+    fHistChargedKaonEt->Fill(fChargedKaonEt);
+    fHistMuonEt->Fill(fMuonEt);
+    fHistElectronEt->Fill(fElectronEt);
+    
+    fHistProtonEtAcc->Fill(fProtonEtAcc);
+    fHistChargedKaonEtAcc->Fill(fChargedKaonEtAcc);
+    fHistMuonEtAcc->Fill(fMuonEtAcc);
+    fHistElectronEtAcc->Fill(fElectronEtAcc);
+    
 }
 
 void AliAnalysisEt::ResetEventValues()
@@ -217,4 +285,17 @@ void AliAnalysisEt::ResetEventValues()
     fMultiplicity = 0;
     fChargedMultiplicity = 0;
     fNeutralMultiplicity = 0;
+    fBaryonEt = 0;
+    fAntiBaryonEt = 0;
+    fMesonEt = 0;
+    fBaryonEtAcc = 0;
+    fAntiBaryonEtAcc = 0;
+    fMesonEtAcc = 0;
+    fProtonEt = 0;
+    fChargedKaonEt = 0;
+    fMuonEt = 0;
+    fElectronEt = 0;
+    fProtonEtAcc = 0;
+    fChargedKaonEtAcc = 0;
+    fMuonEtAcc = 0;
 }

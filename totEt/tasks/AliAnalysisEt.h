@@ -1,4 +1,4 @@
-#ifndef ALIANALYSISET_H
+   #ifndef ALIANALYSISET_H
 #define ALIANALYSISET_H
 
 #include "TString.h"
@@ -104,6 +104,48 @@ protected:
     /** Multiplicity of neutral particles in the event */
     Int_t fNeutralMultiplicity; 
     
+    /** Et of identified baryons */
+    Double_t fBaryonEt;
+    
+    /** Et of identified anti-baryons */
+    Double_t fAntiBaryonEt;
+    
+    /** Et of identified mesons */
+    Double_t fMesonEt;
+
+    /** Et of identified baryons in calorimeter acceptance */
+    Double_t fBaryonEtAcc;
+
+    /** Et of identified anti-baryons in calorimeter acceptance */
+    Double_t fAntiBaryonEtAcc;
+    
+    /** Et of identified mesons in calorimeter acceptance */
+    Double_t fMesonEtAcc;
+
+    /** Et of identified protons */
+    Double_t fProtonEt;
+    
+    /** Et of identified charged kaons */
+    Double_t fChargedKaonEt;
+    
+    /** Et of identified muons */
+    Double_t fMuonEt;
+    
+    /** Et of identified electrons */
+    Double_t fElectronEt;
+    
+    /** Et of identified protons in calorimeter acceptance */
+    Double_t fProtonEtAcc;
+
+    /** Et of identified charged kaons in calorimeter acceptance */
+    Double_t fChargedKaonEtAcc;
+
+    /** Et of identified muons in calorimeter acceptance */
+    Double_t fMuonEtAcc;
+
+    /** Et of identified electrons in calorimeter acceptance */
+    Double_t fElectronEtAcc;
+    
     /** Cut in eta ( normally |eta| < 0.5 */
     Double_t fEtaCut;
 
@@ -115,6 +157,9 @@ protected:
 
     /** Max phi cut for our acceptance in radians */
     Double_t fPhiCutAccMax;
+
+    /** Detector radius */
+    Double_t fDetectorRadius;
 
     /** Vertex cuts */
     Double_t fVertexXCut;
@@ -176,12 +221,22 @@ protected:
     TH1F *fHistAntiBaryonEtAcc;
     TH1F *fHistMesonEtAcc;
 
+    TH1F *fHistProtonEt;
+    TH1F *fHistChargedKaonEt;
+    TH1F *fHistMuonEt;
+    TH1F *fHistElectronEt;
+    
+    TH1F *fHistProtonEtAcc;
+    TH1F *fHistChargedKaonEtAcc;
+    TH1F *fHistMuonEtAcc;
+    TH1F *fHistElectronEtAcc;
+    
     /* Correction plots */
     TH2F *fHistEtRecvsEtMC; //Reconstructed Et versus MC Et
 
     /* Track matching plots */
     TH1F *fHistTMDeltaR;
-
+    
     ClassDef(AliAnalysisEt, 0);
 };
 

@@ -19,13 +19,19 @@
   
   if (!alienHandler) return;
 
-  // Create the analysis manager
+  // Create the analysis manager`
   AliAnalysisManager *mgr = new AliAnalysisManager("TotEtAnalysisSim");
 
   // Connect plug-in to the analysis manager
   mgr->SetGridHandler(alienHandler);
-
+ 
+  gROOT->LoadMacro("AliAnalysisEt.cxx+g");
+    gROOT->LoadMacro("AliAnalysisEtReconstructed.cxx+g");
+    gROOT->LoadMacro("AliAnalysisEtMonteCarlo.cxx+g");
+    gROOT->LoadMacro("AliAnalysisEtReconstructedPhos.cxx+g");
+    gROOT->LoadMacro("AliAnalysisEtMonteCarloPhos.cxx+g");
   gROOT->LoadMacro("AliAnalysisTaskTotEt.cxx++g");   
+  
   AliAnalysisTask *task = new AliAnalysisTaskTotEt("TaskTotEtSim");
   
   mgr->AddTask(task);

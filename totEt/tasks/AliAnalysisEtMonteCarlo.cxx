@@ -85,7 +85,8 @@ Int_t AliAnalysisEtMonteCarlo::AnalyseEvent(AliVEvent* ev)
     fTotEtAcc = fTotChargedEtAcc + fTotNeutralEtAcc;
     
     FillHistograms();
-    
+
+    return 0;    
 }
 
 void AliAnalysisEtMonteCarlo::Init()

@@ -1,5 +1,5 @@
 
-void runLocalSimTest() {
+void runLocalSim() {
     TStopwatch timer;
     timer.Start();
 
