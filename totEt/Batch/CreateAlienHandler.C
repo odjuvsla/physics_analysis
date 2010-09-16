@@ -11,14 +11,16 @@ AliAnalysisGrid* CreateAlienHandler()
    //plugin->SetRunMode("terminate");
 // Set versions of used packages
    plugin->SetAPIVersion("V1.1x");
-   plugin->SetROOTVersion("v5-26-00b-4");
-   plugin->SetAliROOTVersion("v4-19-11-AN");
+   plugin->SetROOTVersion("v5-26-00b-6");
+   plugin->SetAliROOTVersion("v4-20-05-AN");
 // Declare input data to be processed.
 // Method 1: Create automatically XML collections using alien 'find' command.
 // Define production directory LFN
    //plugin->SetGridDataDir("/alice/sim/LHC10a6");
    // On real reconstructed data:
- plugin->SetGridDataDir("/alice/data/2010/LHC10b");
+   
+ plugin->SetGridDataDir("/alice/data/2010/LHC10e");
+   // plugin->SetGridDataDir("/alice/data/2010/LHC10b");
 // Set data search pattern
  //  plugin->SetDataPattern("*ESDs.root");
 // Data pattern for reconstructed data
@@ -27,9 +29,18 @@ AliAnalysisGrid* CreateAlienHandler()
 // ...then add run numbers to be considered
    //plugin->AddRunNumber(125020);
 //   plugin->AddRunNumber(104065);  // real data
-//   plugin->AddRunNumber(116197);
-   plugin->AddRunNumber(117112);
+   //  plugin->AddRunNumber(116197);
+   //plugin->AddRunNumber(117112);
 //plugin->AddRunNumber(119067);
+   plugin->AddRunNumber(128369);
+//   plugin->AddRunNumber(128452);
+   //plugin->AddRunNumber(128486);
+   //plugin->AddRunNumber(128498);
+   //plugin->AddRunNumber(128503);
+   //plugin->AddRunNumber(128504);
+   
+   
+   
 //   plugin->SetOutputSingleFolder("output");
 //   plugin->SetOutputToRunNo();
 // Method 2: Declare existing data files (raw collections, xml collections, root file)
@@ -39,22 +50,24 @@ AliAnalysisGrid* CreateAlienHandler()
 //   plugin->AddDataFile("tag.xml");
 //   plugin->AddDataFile("/alice/data/2008/LHC08c/000057657/raw/Run57657.Merged.RAW.tag.root");
 // Define alien work directory where all files will be copied. Relative to alien $HOME.
-   plugin->SetGridWorkingDir("analysis/totEtNew");
+   plugin->SetGridWorkingDir("analysis/totEt2");
 // Declare alien output directory. Relative to working directory.
    plugin->SetGridOutputDir("output"); // In this case will be $HOME/work/output
 // Declare the analysis source files names separated by blancs. To be compiled runtime
 // using ACLiC on the worker nodes.
+   //plugin->SetAnalysisSource("AliAnalysisEt.cxx AliAnalysisEtReconstructed.cxx AliAnalysisEtMonteCarlo.cxx AliAnalysisEtReconstructedPhos.cxx AliAnalysisEtMonteCarloPhos.cxx AliAnalysisTaskTotEt.cxx");
    plugin->SetAnalysisSource("AliAnalysisTaskTotEt.cxx");
 // Declare all libraries (other than the default ones for the framework. These will be
 // loaded by the generated analysis macro. Add all extra files (task .cxx/.h) here.
-   plugin->SetAdditionalLibs("AliAnalysisTaskTotEt.h AliAnalysisTaskTotEt.cxx");
+   plugin->SetAdditionalLibs("AliAnalysisEtCuts.h AliAnalysisEt.h AliAnalysisEtReconstructed.h AliAnalysisEtMonteCarlo.h AliAnalysisEtReconstructedPhos.h AliAnalysisEtMonteCarloPhos.h AliAnalysisEt.h AliAnalysisEtReconstructed.h AliAnalysisEtMonteCarlo.h AliAnalysisEtReconstructedPhos.h AliAnalysisEtMonteCarloPhos.h AliAnalysisEt.cxx AliAnalysisEtReconstructed.cxx AliAnalysisEtMonteCarlo.cxx AliAnalysisEtReconstructedPhos.cxx AliAnalysisEtMonteCarloPhos.cxx AliAnalysisTaskTotEt.h AliAnalysisTaskTotEt.cxx");
 // Declare the output file names separated by blancs.
 // (can be like: file.root or file.root@ALICE::Niham::File)
-//   plugin->SetOutputFiles("Pt.ESD.1.root");
+   //plugin->SetDefaultOutputs(kFALSE);
    plugin->SetDefaultOutputs();
+   //plugin->SetOutputFiles("Et.ESD.root");
 // Optionally define the files to be archived.
-//   plugin->SetOutputArchive("log_archive.zip:stdout,stderr@ALICE::NIHAM::File root_archive.zip:*.root@ALICE::NIHAM::File");
-   plugin->SetOutputArchive("log_archive.zip:stdout,stderr");
+   //plugin->SetOutputArchive("log_archive.zip:stdout,stderr@ALICE::NIHAM::File root_archive.zip:*.root@ALICE::NIHAM::File");
+   //plugin->SetOutputArchive("log_archive.zip:stdout,stderr");
 // Optionally set a name for the generated analysis macro (default MyAnalysis.C)
    plugin->SetAnalysisMacro("TaskTotEt.C");
 // Optionally set maximum number of input files/subjob (default 100, put 0 to ignore)
@@ -66,7 +79,7 @@ AliAnalysisGrid* CreateAlienHandler()
 // Optionally resubmit threshold.
 //   plugin->SetMasterResubmitThreshold(90);
 // Optionally set time to live (default 30000 sec)
-   plugin->SetTTL(6000);
+   plugin->SetTTL(30000);
 // Optionally set input format (default xml-single)
    plugin->SetInputFormat("xml-single");
 // Optionally modify the name of the generated JDL (default analysis.jdl)

@@ -24,8 +24,13 @@
 
   // Connect plug-in to the analysis manager
   mgr->SetGridHandler(alienHandler);
-
-  gROOT->LoadMacro("AliAnalysisTaskTotEt.cxx++g");   
+   gROOT->LoadMacro("AliAnalysisEt.cxx+g");
+    gROOT->LoadMacro("AliAnalysisEtReconstructed.cxx+g");
+    gROOT->LoadMacro("AliAnalysisEtMonteCarlo.cxx+g");
+    gROOT->LoadMacro("AliAnalysisEtReconstructedPhos.cxx+g");
+    gROOT->LoadMacro("AliAnalysisEtMonteCarloPhos.cxx+g");
+   gROOT->LoadMacro("AliAnalysisTaskTotEt.cxx++g");   
+  
   AliAnalysisTask *task = new AliAnalysisTaskTotEt("TaskTotEt");
   ((AliAnalysisTaskTotEt*)task)->SetTriggerSelection(true);
   mgr->AddTask(task);
